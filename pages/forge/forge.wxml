@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="heading">闪耀合成秘仪</view>
+  <view class="intro">消耗 3 张同名普通卡，合成 1 张闪耀卡。闪耀版本拥有特殊外观，不改变战斗属性。</view>
+  <view class="list">
+    <view wx:for="{{forgeCards}}" wx:key="id" class="forge-row {{item.rarity}}">
+      <view class="card-symbol {{animatingId === item.id ? 'pulse' : ''}}">{{item.element}}</view>
+      <view class="info">
+        <view class="name">{{item.name}}</view>
+        <view class="rarity">{{item.rarityLabel}} · 普通库存 {{item.normalCount}} 张</view>
+        <view class="shiny-count">闪耀库存 {{item.shinyCount}} 张</view>
+        <view class="progress"><view class="progress-fill" style="width:{{item.normalCount >= 3 ? 100 : item.normalCount / 3 * 100}}%"></view></view>
+      </view>
+      <button class="forge-btn {{item.canForge ? 'ready' : 'disabled'}}" data-id="{{item.id}}" bindtap="forge" disabled="{{!item.canForge || animatingId !== ''}}">合成</button>
+    </view>
+  </view>
+  <view wx:if="{{successCard}}" class="success-panel" bindtap="clearSuccess">
+    <view class="success-spark">✧ ✦ ✧</view>
+    <view class="success-title">闪耀合成成功</view>
+    <view class="success-name">{{successCard}}</view>
+    <view class="success-sub">SHINY CARD · 点击关闭</view>
+  </view>
+  <view wx:if="{{forgeCards.length === 0}}" class="empty">尚未拥有卡牌，先前往召唤大厅进行召唤吧。</view>
+</view>

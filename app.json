@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/index/index", "pages/collection/collection", "pages/forge/forge"],
+  "window": {
+    "navigationBarTitleText": "星界召唤",
+    "navigationBarBackgroundColor": "#10142b",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0b1024",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2"
+}

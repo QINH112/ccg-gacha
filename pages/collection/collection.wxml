@@ -1,0 +1,16 @@
+<view class="page">
+  <view class="heading">星界卡牌图鉴</view>
+  <view class="summary">已收集 {{ownedUnique}} / {{cards.length}} 种 · 总库存 {{totalOwned}} 张</view>
+  <view class="grid">
+    <view wx:for="{{cards}}" wx:key="id" class="entry {{item.rarity}} {{item.owned ? '' : 'locked'}}">
+      <view class="symbol">{{item.owned ? item.element : '？'}}</view>
+      <view class="name">{{item.owned ? item.name : '未解锁卡牌'}}</view>
+      <view class="rarity">{{item.rarityLabel}}</view>
+      <view class="stats">⚔ {{item.attack}}　♥ {{item.health}}</view>
+      <view class="counts">普通 ×{{item.normalCount}}　闪耀 ×{{item.shinyCount}}</view>
+      <view class="duplicates" wx:if="{{item.normalCount > 1}}">重复 {{item.duplicateCount}} 张</view>
+      <view class="desc">{{item.owned ? item.description : '通过召唤发现此卡'}}</view>
+    </view>
+  </view>
+  <button class="back" bindtap="goHome">返回召唤大厅</button>
+</view>
