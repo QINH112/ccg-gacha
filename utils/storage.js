@@ -33,6 +33,7 @@ function callFunction(name, data) {
 exports.initCloud = initCloud;
 exports.loadGameData = () => callFunction("gameData", { action: "load" });
 exports.resetGameData = () => callFunction("gameData", { action: "reset" });
+exports.updateUserProfile = profile => callFunction("gameData", { action: "updateProfile", profile });
 exports.drawCards = (poolId, count) => callFunction("drawCards", { poolId, count });
 exports.getSignInStatus = () => callFunction("dailySignIn", { action: "status" });
 exports.claimSignIn = () => callFunction("dailySignIn", { action: "claim" });
