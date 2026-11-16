@@ -38,3 +38,9 @@ exports.getSignInStatus = () => callFunction("dailySignIn", { action: "status" }
 exports.claimSignIn = () => callFunction("dailySignIn", { action: "claim" });
 exports.workshopAction = (action, cardId) => callFunction("workshop", { action, cardId });
 exports.loadDrawHistory = () => callFunction("drawHistory", { limit: 100 });
+exports.loadServices = () => callFunction("gameServices", { action:"dashboard" });
+exports.buyTickets = quantity => callFunction("gameServices", { action:"buyTicket", quantity });
+exports.claimMail = mailId => callFunction("gameServices", { action:"claimMail", mailId });
+exports.claimAllMail = mailIds => callFunction("gameServices", { action:"claimAllMail", mailIds });
+exports.claimTask = (scope, taskId, bonus) => callFunction("gameServices", { action:"claimTask", scope, taskId, bonus:Boolean(bonus) });
+exports.claimAllTasks = scope => callFunction("gameServices", { action:"claimAllTasks", scope });

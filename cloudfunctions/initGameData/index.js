@@ -76,11 +76,47 @@ const pools = [
 ];
 const settings = {
   rarityRates:{common:70,rare:20,epic:7.5,legendary:2.5},
-  tenDrawGuarantee:{epic:95,legendary:5},legendaryPity:40,initialTicket:100,
+  tenDrawGuarantee:{epic:95,legendary:5},legendaryPity:40,initialTicket:100,initialCoin:1000,ticketCoinPrice:100,maxShopQuantity:99,
   disassemble:{common:5,rare:20,epic:100,legendary:400},
   craft:{common:40,rare:100,epic:400,legendary:1600},shinyCost:3,
   signIn:{timezone:"Asia/Shanghai",firstCycle:[{type:"ticket",amount:50},{type:"card",rarity:"epic",amount:1},{type:"ticket",amount:10},{type:"ticket",amount:20},{type:"ticket",amount:20},{type:"card",rarity:"legendary",amount:1},{type:"ticket",amount:50}],dailyAfterCycle:{type:"ticket",amount:5}}
 };
+
+const taskConfigs = [
+  {id:"daily_sign",type:"daily",name:"星界报到",description:"领取 1 次每日签到",metric:"signIn",target:1,rewards:[{type:"coin",amount:100}],order:10},
+  {id:"daily_draw",type:"daily",name:"每日召唤",description:"抽卡 10 次",metric:"draw",target:10,rewards:[{type:"ticket",amount:2}],order:20},
+  {id:"daily_gain",type:"daily",name:"卡牌入手",description:"获得 5 张卡牌",metric:"cardGained",target:5,rewards:[{type:"dust",amount:20}],order:30},
+  {id:"daily_disassemble",type:"daily",name:"星尘提炼",description:"分解 3 张卡牌",metric:"disassemble",target:3,rewards:[{type:"coin",amount:100}],order:40},
+  {id:"daily_bonus",type:"daily-bonus",name:"每日全勤",description:"完成全部每日任务",metric:"dailyAll",target:4,rewards:[{type:"ticket",amount:5},{type:"coin",amount:200}],order:100},
+  {id:"weekly_sign",type:"weekly",name:"本周报到",description:"签到 5 次",metric:"signIn",target:5,rewards:[{type:"coin",amount:300}],order:10},
+  {id:"weekly_draw",type:"weekly",name:"星海巡游",description:"抽卡 50 次",metric:"draw",target:50,rewards:[{type:"ticket",amount:10}],order:20},
+  {id:"weekly_rare",type:"weekly",name:"稀有星光",description:"获得 10 张稀有卡",metric:"rarity_rare",target:10,rewards:[{type:"dust",amount:100}],order:30},
+  {id:"weekly_craft",type:"weekly",name:"工坊常客",description:"合成 3 张普通版卡牌",metric:"craft",target:3,rewards:[{type:"coin",amount:300}],order:40},
+  {id:"weekly_shop",type:"weekly",name:"商店采购",description:"购买抽卡券累计消费 500 金币",metric:"coinSpentTickets",target:500,rewards:[{type:"ticket",amount:5}],order:50},
+  {id:"weekly_bonus",type:"weekly-bonus",name:"每周全勤",description:"完成全部每周任务",metric:"weeklyAll",target:5,rewards:[{type:"ticket",amount:20},{type:"coin",amount:500}],order:100},
+  ...achievementChain("draw","召唤旅程","draw",[10,100,500,2000],[["ticket",5],["ticket",20],["coin",1000],["randomCard",1,"legendary"]],100),
+  ...achievementChain("normal_collection","普通图鉴","normalCollected",[10,30,60],[ ["dust",50],["ticket",10],["coin",1000] ],200),
+  ...achievementChain("shiny_collection","闪耀图鉴","shinyCollected",[1,10,30],[ ["dust",100],["ticket",20],["randomCard",1,"epic"] ],300),
+  ...achievementChain("coin_earned","金币积累","coinEarned",[1000,5000,20000],[ ["ticket",3],["ticket",10],["randomCard",1,"epic"] ],400),
+  ...achievementChain("dust_earned","星尘积累","dustEarned",[100,1000,5000],[ ["coin",300],["ticket",10],["randomCard",1,"epic"] ],500),
+  ...achievementChain("ticket_earned","抽卡券积累","ticketEarned",[100,500,2000],[ ["coin",300],["dust",200],["randomCard",1,"legendary"] ],600),
+  ...achievementChain("disassemble","分解大师","disassemble",[10,100,500],[ ["coin",300],["ticket",10],["dust",500] ],700),
+  ...achievementChain("craft","星尘塑形","craft",[1,20,100],[ ["dust",50],["ticket",10],["randomCard",1,"epic"] ],800),
+  ...achievementChain("shiny_craft","闪耀锻造","shinyCraft",[1,10,50],[ ["coin",500],["ticket",20],["randomCard",1,"legendary"] ],900)
+].map(task=>({...task,enabled:true,deleted:false,activationVersion:1}));
+
+const launchCompensationMail = {
+  id:"coin-launch-compensation",title:"金币系统上线补偿",body:"感谢你在金币系统上线前加入星界召唤，请领取 1000 金币补偿。",
+  rewards:[{type:"coin",amount:1000}],recipientScope:"existing-users",publishedAt:Date.now(),audienceCutoff:Date.now(),expiresAt:Date.now()+30*86400000,enabled:true,deleted:false
+};
+
+function achievementChain(prefix,name,metric,targets,rewardDefs,baseOrder){
+  return targets.map((target,index)=>{
+    const reward=rewardDefs[index]||rewardDefs[rewardDefs.length-1];
+    const item={type:reward[0],amount:reward[1]};if(reward[2])item.rarity=reward[2];
+    return{id:`ach_${prefix}_${index+1}`,type:"achievement",name:`${name} ${index+1}`,description:`累计达到 ${target}`,metric,target,rewards:[item],previousId:index?`ach_${prefix}_${index}`:"",order:baseOrder+index};
+  });
+}
 
 async function existingIds(collection) {
   const output = new Set();
@@ -107,16 +143,18 @@ async function writeBatch(collection, items, force) {
 exports.main = async event => {
   const force = Boolean(event && event.force);
   if (force && (!process.env.INIT_SECRET || event.secret !== process.env.INIT_SECRET)) throw new Error("INIT_SECRET 校验失败");
-  await Promise.all(["cards","cardSets","cardPools","gameConfig","gameSaves","drawLogs"].map(async name => {
+  await Promise.all(["cards","cardSets","cardPools","gameConfig","gameSaves","drawLogs","taskConfigs","globalMails","mailClaims"].map(async name => {
     try { await db.createCollection(name); } catch (error) {}
   }));
   const groups = [
     ["cards",[...baseCards,...starCards].map(card=>({id:card.id,data:card}))],
     ["cardSets",sets.map(set=>({id:set.id,data:set}))],
     ["cardPools",pools.map(pool=>({id:pool.id,data:pool}))],
-    ["gameConfig",[{id:"main",data:settings}]]
+    ["gameConfig",[{id:"main",data:settings}]],
+    ["taskConfigs",taskConfigs.map(task=>({id:task.id,data:task}))],
+    ["globalMails",[{id:launchCompensationMail.id,data:launchCompensationMail}],false]
   ];
-  const groupResults = await Promise.all(groups.map(([name,items])=>writeBatch(name,items,force)));
+  const groupResults = await Promise.all(groups.map(([name,items,allowForce=true])=>writeBatch(name,items,force&&allowForce)));
   const results = groupResults.reduce((sum,item)=>({written:sum.written+item.written,skipped:sum.skipped+item.skipped}),{written:0,skipped:0});
   return { ok:true,results,cards:baseCards.length+starCards.length };
 };
