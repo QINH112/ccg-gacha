@@ -1,6 +1,9 @@
 {
-  "description": "星界召唤 CCG 原生小程序抽卡 Demo",
-  "packOptions": { "ignore": [] },
+  "description": "星界召唤 CCG 微信小游戏 Canvas 抽卡 Demo",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
   "setting": {
     "urlCheck": false,
     "es6": true,
@@ -8,11 +11,31 @@
     "postcss": true,
     "minified": false,
     "compileHotReLoad": true,
-    "typescript": true
+    "typescript": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
-  "compileType": "miniprogram",
+  "compileType": "game",
   "libVersion": "3.6.5",
-  "appid": "touristappid",
+  "appid": "wxa7b371c950f257b6",
   "projectname": "astral-ccg-gacha",
-  "miniprogramRoot": "./"
+  "gameRoot": "./",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "isGameTourist": false,
+  "simulatorPluginLibVersion": {},
+  "editorSetting": {}
 }
