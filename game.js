@@ -22,10 +22,9 @@ const HOME_LAYOUT = {
 const info=wx.getSystemInfoSync(),canvas=wx.createCanvas(),ctx=canvas.getContext("2d"),ratio=Math.max(1,info.pixelRatio||1),W=info.windowWidth,H=info.windowHeight,safe=info.safeArea||{top:0,bottom:H},safeTop=Math.max(12,safe.top||0),safeBottom=Math.max(10,H-(safe.bottom||H));
 canvas.width=W*ratio;canvas.height=H*ratio;ctx.scale(ratio,ratio);
 
-const state={screen:"home",player:null,cards:[],sets:[],pools:[],config:null,configReady:false,hasLoaded:false,profileChecked:false,profileSyncing:false,signStatus:null,userKey:"",selectedPoolId:"",collectionFilter:"all",hit:[],scrollY:0,maxScroll:0,poolScrollX:0,maxPoolScroll:0,poolArea:null,touchX:0,touchY:0,lastX:0,lastY:0,moved:false,loading:true,error:"",results:[],resultLabel:"",showResults:false,showSign:false,history:[],expandedHistory:""};
-let userInfoButton=null,userInfoButtonLabel="",avatarImage=null,avatarImageUrl="";
+const state={screen:"home",player:null,cards:[],sets:[],pools:[],config:null,configReady:false,hasLoaded:false,signStatus:null,userKey:"",selectedPoolId:"",collectionFilter:"all",hit:[],scrollY:0,maxScroll:0,poolScrollX:0,maxPoolScroll:0,poolArea:null,touchX:0,touchY:0,lastX:0,lastY:0,moved:false,loading:true,error:"",results:[],resultLabel:"",showResults:false,showSign:false,history:[],expandedHistory:""};
 
-function emptyPlayer(){return{inventory:[],totalDraws:0,dust:0,ticket:0,pity:{},profile:{nickName:"",avatarUrl:""}};}
+function emptyPlayer(){return{inventory:[],totalDraws:0,dust:0,ticket:0,pity:{}};}
 function homeContentTop(){
   try{
     if(typeof wx.getMenuButtonBoundingClientRect==="function"){
@@ -48,67 +47,15 @@ function ownedCount(){return(state.player.inventory||[]).reduce((sum,item)=>sum+
 function cloudError(error){return String(error&&error.message||error||"云端请求失败").replace(/^Error:\s*/,"");}
 function call(task,success){state.loading=true;state.error="";render();return task.then(result=>{if(result.player)state.player=result.player;if(success)success(result);return result;}).catch(error=>{state.error=cloudError(error);wx.showModal({title:"云端操作失败",content:state.error.slice(0,240),showCancel:false});return null;}).finally(()=>{state.loading=false;render();});}
 
-function profile(){return state.player&&state.player.profile||{nickName:"",avatarUrl:""};}
-function profileButtonRect(){return{left:52,top:homeContentTop()+55,width:125,height:28};}
-function loadAvatar(url){
-  const next=String(url||"");
-  if(!next){avatarImage=null;avatarImageUrl="";return;}
-  if(next===avatarImageUrl&&avatarImage)return;
-  avatarImageUrl=next;
-  const image=typeof canvas.createImage==="function"?canvas.createImage():null;
-  if(!image)return;
-  image.onload=()=>{avatarImage=image;render();};
-  image.onerror=()=>{avatarImage=null;};
-  image.src=next;
-}
-function drawAvatar(x,y,size){
-  ctx.save();ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.clip();
-  if(avatarImage)ctx.drawImage(avatarImage,x,y,size,size);else{ctx.fillStyle="#34395f";ctx.fillRect(x,y,size,size);text("✦",x+size/2,y+size/2,size*.55,"#cfc5ff","center",700);}
-  ctx.restore();ctx.strokeStyle="#8175b8";ctx.lineWidth=1;ctx.beginPath();ctx.arc(x+size/2,y+size/2,size/2,0,Math.PI*2);ctx.stroke();
-}
-function destroyUserInfoButton(){if(userInfoButton){userInfoButton.destroy();userInfoButton=null;userInfoButtonLabel="";}}
-function saveUserProfile(userInfo,showToast){
-  if(!userInfo)return;
-  const next={nickName:String(userInfo.nickName||""),avatarUrl:String(userInfo.avatarUrl||"")};
-  if(!next.nickName&&!next.avatarUrl)return;
-  state.profileSyncing=true;
-  return call(api.updateUserProfile(next),result=>{state.player=result.player;loadAvatar(result.profile.avatarUrl);if(showToast)wx.showToast({title:"用户资料已更新",icon:"success"});}).finally(()=>{state.profileSyncing=false;render();});
-}
-function checkAuthorizedProfile(){
-  if(state.profileChecked)return;loadAvatar(profile().avatarUrl);
-  if(typeof wx.getSetting!=="function"||typeof wx.getUserInfo!=="function"){state.profileChecked=true;render();return;}
-  wx.getSetting({
-    success:result=>{
-      state.profileChecked=true;
-      if(result.authSetting&&result.authSetting["scope.userInfo"]===true)wx.getUserInfo({success:response=>saveUserProfile(response.userInfo,false),fail:render});
-      else render();
-    },
-    fail:()=>{state.profileChecked=true;render();}
-  });
-}
-function syncUserInfoButton(){
-  const visible=state.profileChecked&&!state.profileSyncing&&state.screen==="home"&&!state.showSign&&!state.showResults&&!state.loading&&state.configReady;
-  if(!visible){if(userInfoButton)userInfoButton.hide();return;}
-  if(typeof wx.createUserInfoButton!=="function")return;
-  const label=profile().nickName||"设置头像昵称";
-  if(userInfoButton&&userInfoButtonLabel!==label)destroyUserInfoButton();
-  if(!userInfoButton){
-    const rect=profileButtonRect();userInfoButtonLabel=label;
-    userInfoButton=wx.createUserInfoButton({type:"text",text:label,style:{left:rect.left,top:rect.top,width:rect.width,height:rect.height,lineHeight:rect.height,backgroundColor:"#242947",borderColor:"#56608b",borderWidth:1,borderRadius:8,color:"#dfe4ff",textAlign:"center",fontSize:12}});
-    userInfoButton.onTap(result=>{if(result&&result.userInfo)saveUserProfile(result.userInfo,true);else wx.showToast({title:"未授权用户信息",icon:"none"});});
-  }
-  userInfoButton.show();
-}
-
-function refresh(showSign){state.loading=true;state.configReady=false;state.error="";return api.initCloud().then(()=>api.loadGameData()).then(result=>{state.player=result.player;state.cards=result.cards;state.sets=result.sets;state.pools=result.pools;state.config=result.config;state.signStatus=result.signStatus;state.userKey=result.userKey;state.configReady=true;state.hasLoaded=true;loadAvatar(profile().avatarUrl);checkAuthorizedProfile();if(showSign&&state.signStatus&&!state.signStatus.claimedToday)state.showSign=true;}).catch(error=>{state.error=cloudError(error);}).finally(()=>{state.loading=false;render();});}
+function refresh(showSign){state.loading=true;state.configReady=false;state.error="";return api.initCloud().then(()=>api.loadGameData()).then(result=>{state.player=result.player;state.cards=result.cards;state.sets=result.sets;state.pools=result.pools;state.config=result.config;state.signStatus=result.signStatus;state.userKey=result.userKey;state.configReady=true;state.hasLoaded=true;if(showSign&&state.signStatus&&!state.signStatus.claimedToday)state.showSign=true;}).catch(error=>{state.error=cloudError(error);}).finally(()=>{state.loading=false;render();});}
 
 function header(title,sub){const top=safeTop+8;text("‹",23,top+19,32,"#ddd6ff","center");hit("home",0,top-5,48,48);text(title,50,top+15,23,"#f3edff","left",800);text(sub,50,top+39,10,"#aab0d1");return top+55;}
 function scrollBar(top){if(state.maxScroll<=0)return;const view=H-top-safeBottom,track=view-12,thumb=Math.max(28,track*view/(view+state.maxScroll)),y=top+6+(track-thumb)*state.scrollY/state.maxScroll;box(W-5,y,2,thumb,1,"#aaa1d088");}
 
-function renderHome(){bg();const m=16,top=homeContentTop();text("ASTRAL SUMMON · 星界秘仪",m,top+10,9,"#aa9fff");text("星界召唤",m,top+38,28,"#f5efff","left",800);drawAvatar(m,top+55,28);text(`ID · ${state.userKey||"连接中"}`,m+36,top+91,8,state.error?"#ef9191":"#79c7a6");text("隐私指引",W-m,top+91,9,"#9fa8d0","right");hit("privacy",W-m-65,top+77,65,28);
+function renderHome(){bg();const m=16,top=homeContentTop();text("ASTRAL SUMMON · 星界秘仪",m,top+10,9,"#aa9fff");text("星界召唤",m,top+38,28,"#f5efff","left",800);text(`云端账号 · ${state.userKey||"连接中"}`,m,top+61,9,state.error?"#ef9191":"#79c7a6");
   if(!state.configReady&&!state.loading){button("retry",m,top+70,150,30,"云配置加载失败 · 重试","",true);}
   const stats=[[`券 ${state.player.ticket}`,"抽卡券"],[state.player.totalDraws,"累计召唤"],[state.player.dust,"星尘"]],sw=55,g=5,sx=W-m-sw*3-g*2;stats.forEach((item,i)=>{box(sx+i*(sw+g),top+2,sw,48,9,"#1b2040","#47447c");text(item[0],sx+i*(sw+g)+sw/2,top+19,13,i===0?"#8fe7c1":"#f1d58a","center",700);text(item[1],sx+i*(sw+g)+sw/2,top+36,8,"#9da4c8","center");});
-  let y=top+124;text("选择召唤卡池 · 左右滑动",m,y,14,"#ebe5ff","left",700);y+=13;const pw=Math.min(230,W*.66),poolGap=8,totalPoolWidth=state.pools.length*pw+Math.max(0,state.pools.length-1)*poolGap;state.maxPoolScroll=Math.max(0,totalPoolWidth-(W-m*2));state.poolScrollX=Math.max(0,Math.min(state.poolScrollX,state.maxPoolScroll));state.poolArea={x:m,y,w:W-m*2,h:78};ctx.save();ctx.beginPath();ctx.rect(m,y,W-m*2,78);ctx.clip();state.pools.forEach((pool,i)=>{const x=m+i*(pw+poolGap)-state.poolScrollX,selected=state.selectedPoolId===pool.id;box(x,y,pw,78,12,selected?gradient(y,78,"#6655a9","#24274c"):"#171d39",selected?"#e2c67d":"#414c78");text(pool.name,x+pw/2,y+24,14,"#fff","center",700);const names=pool.setIds.map(id=>(state.sets.find(set=>set.id===id)||{}).name).filter(Boolean).join(" + ");text(fit(names,pw-16,10),x+pw/2,y+49,10,"#b4b9d6","center");if(selected)text("已选择",x+pw/2,y+66,9,"#f0d58b","center");hit("selectPool",x,y,pw,78,pool.id);});ctx.restore();
+  let y=top+76;text("选择召唤卡池 · 左右滑动",m,y,14,"#ebe5ff","left",700);y+=13;const pw=Math.min(230,W*.66),poolGap=8,totalPoolWidth=state.pools.length*pw+Math.max(0,state.pools.length-1)*poolGap;state.maxPoolScroll=Math.max(0,totalPoolWidth-(W-m*2));state.poolScrollX=Math.max(0,Math.min(state.poolScrollX,state.maxPoolScroll));state.poolArea={x:m,y,w:W-m*2,h:78};ctx.save();ctx.beginPath();ctx.rect(m,y,W-m*2,78);ctx.clip();state.pools.forEach((pool,i)=>{const x=m+i*(pw+poolGap)-state.poolScrollX,selected=state.selectedPoolId===pool.id;box(x,y,pw,78,12,selected?gradient(y,78,"#6655a9","#24274c"):"#171d39",selected?"#e2c67d":"#414c78");text(pool.name,x+pw/2,y+24,14,"#fff","center",700);const names=pool.setIds.map(id=>(state.sets.find(set=>set.id===id)||{}).name).filter(Boolean).join(" + ");text(fit(names,pw-16,10),x+pw/2,y+49,10,"#b4b9d6","center");if(selected)text("已选择",x+pw/2,y+66,9,"#f0d58b","center");hit("selectPool",x,y,pw,78,pool.id);});ctx.restore();
   y+=92;const ready=Boolean(state.selectedPoolId)&&!state.loading;const bw=(W-m*2-12)/3;[[1,"单抽"],[5,"五连"],[10,"十连"]].forEach((item,i)=>button("draw",m+i*(bw+6),y,bw,58,item[1],state.player.ticket>=item[0]?`消耗 ${item[0]}`:"抽卡券不足",ready&&state.player.ticket>=item[0],item[0]));
   y+=70;const nw=(W-m*2-12)/4;[["sign","每日签到"],["history","召唤记录"],["collection","卡牌图鉴"],["forge","卡牌工坊"]].forEach((item,i)=>{button(item[0],m+i*(nw+4),y,nw,45,item[1],"",!state.loading&&state.configReady);if(item[0]==="sign"&&state.signStatus&&!state.signStatus.claimedToday){ctx.fillStyle="#ff566d";ctx.beginPath();ctx.arc(m+i*(nw+4)+nw-6,y+6,5,0,Math.PI*2);ctx.fill();}});
   y+=56;text(state.selectedPoolId?`当前：${(state.pools.find(p=>p.id===state.selectedPoolId)||{}).name}`:"请先点击选择卡池",W/2,y,11,state.selectedPoolId?"#e5d18c":"#e58d8d","center");text("重置云端存档（开发阶段）",W/2,H-safeBottom-15,10,"#747c9f","center");hit("reset",W/2-80,H-safeBottom-30,160,28);
@@ -159,7 +106,7 @@ function renderSign(){
 
 function renderHistory(){bg("#20234b","#090d1c");const top=header("召唤记录","最近 100 批 · 云端最多保存 2000 批"),m=12,row=66;let content=0;state.history.forEach(item=>content+=row+(state.expandedHistory===item._id?Math.ceil(item.results.length/5)*56+10:0));state.maxScroll=Math.max(0,content-(H-top-safeBottom));ctx.save();ctx.beginPath();ctx.rect(0,top,W,H-top-safeBottom);ctx.clip();let y=top-state.scrollY;state.history.forEach(item=>{const expanded=state.expandedHistory===item._id,h=row+(expanded?Math.ceil(item.results.length/5)*56+10:0);box(m,y,W-m*2,h,10,"#171d39","#444e78");text(item.poolName||"签到奖励",m+12,y+19,13,"#fff","left",700);text(`${item.drawType} · 最高 ${RARITY_LABEL[item.highestRarity]}`,m+12,y+42,10,"#b5bbd7");text(new Date(item.createdAt).toLocaleString(),W-m-12,y+19,9,"#8e96ba","right");hit("expandHistory",m,y,W-m*2,row,item._id);if(expanded)item.results.forEach((r,i)=>{const x=m+12+(i%5)*((W-m*2-24)/5),cy=y+row+Math.floor(i/5)*56;text(r.element,x+20,cy+15,19,COLORS[r.rarity].accent,"center");text(fit(r.name,54,8),x+20,cy+37,8,"#ddd","center");if(r.pityTriggered||r.tenGuarantee)text(r.pityTriggered?"40保底":"十连保底",x+20,cy+50,7,"#f0cd78","center");});y+=h+7;});ctx.restore();scrollBar(top);}
 
-function render(){state.hit=[];state.player=state.player||emptyPlayer();if(state.screen==="collection")renderCollection();else if(state.screen==="forge")renderForge();else if(state.screen==="history")renderHistory();else renderHome();if(state.showResults)renderResults();if(state.showSign)renderSign();if(state.loading){ctx.fillStyle="#05071388";ctx.fillRect(0,0,W,H);text("云端处理中…",W/2,H/2,18,"#fff","center",700);}if(state.error&&!state.loading)text(fit(state.error,W-30,9),W/2,H-safeBottom-36,9,"#ef9191","center");syncUserInfoButton();}
+function render(){state.hit=[];state.player=state.player||emptyPlayer();if(state.screen==="collection")renderCollection();else if(state.screen==="forge")renderForge();else if(state.screen==="history")renderHistory();else renderHome();if(state.showResults)renderResults();if(state.showSign)renderSign();if(state.loading){ctx.fillStyle="#05071388";ctx.fillRect(0,0,W,H);text("云端处理中…",W/2,H/2,18,"#fff","center",700);}if(state.error&&!state.loading)text(fit(state.error,W-30,9),W/2,H-safeBottom-36,9,"#ef9191","center");}
 
 function switchScreen(screen){state.screen=screen;state.scrollY=0;state.maxScroll=0;render();}
 function doDraw(count){if(!state.selectedPoolId){wx.showToast({title:"请先选择卡池",icon:"none"});return;}call(api.drawCards(state.selectedPoolId,count),result=>{state.results=result.results;state.resultLabel=result.batch.drawType;state.showResults=true;});}
@@ -168,7 +115,7 @@ function claimSign(){call(api.claimSignIn(),result=>{state.signStatus=result.sta
 function loadHistory(){call(api.loadDrawHistory(),result=>{state.history=result.history;switchScreen("history");});}
 function resetGame(){wx.showModal({title:"重置云端存档",content:"开发功能：恢复为全新账号状态并清空记录？",success:r=>{if(r.confirm)call(api.resetGameData(),result=>{state.player=result.player;state.signStatus={claimedToday:false,firstCycle:true,day:1,reward:state.config.signIn.firstCycle[0]};state.selectedPoolId="";wx.showToast({title:"已重置",icon:"success"});});}});}
 
-function activate(x,y){const target=[...state.hit].reverse().find(a=>x>=a.x&&x<=a.x+a.w&&y>=a.y&&y<=a.y+a.h);if(!target||state.loading)return;const{id,data}=target;if(id==="retry"){refresh(false);return;}if(!state.configReady&&!["home","privacy"].includes(id)){wx.showToast({title:"云配置未就绪",icon:"none"});return;}if(id==="privacy"){if(typeof wx.openPrivacyContract==="function")wx.openPrivacyContract({fail:()=>wx.showToast({title:"暂时无法打开隐私指引",icon:"none"})});else wx.showToast({title:"当前微信版本不支持",icon:"none"});return;}if(id==="selectPool")state.selectedPoolId=data;else if(id==="draw")doDraw(data);else if(id==="sign")state.showSign=true;else if(id==="history")loadHistory();else if(id==="collection")switchScreen("collection");else if(id==="forge")switchScreen("forge");else if(id==="home")switchScreen("home");else if(id==="filter"){state.collectionFilter=data;state.scrollY=0;}else if(id==="workshop")doWorkshop(data);else if(id==="claimSign")claimSign();else if(id==="closeSign")state.showSign=false;else if(id==="closeResults"){state.showResults=false;state.results=[];}else if(id==="expandHistory")state.expandedHistory=state.expandedHistory===data?"":data;else if(id==="reset")resetGame();render();}
+function activate(x,y){const target=[...state.hit].reverse().find(a=>x>=a.x&&x<=a.x+a.w&&y>=a.y&&y<=a.y+a.h);if(!target||state.loading)return;const{id,data}=target;if(id==="retry"){refresh(false);return;}if(!state.configReady&&!["home"].includes(id)){wx.showToast({title:"云配置未就绪",icon:"none"});return;}if(id==="selectPool")state.selectedPoolId=data;else if(id==="draw")doDraw(data);else if(id==="sign")state.showSign=true;else if(id==="history")loadHistory();else if(id==="collection")switchScreen("collection");else if(id==="forge")switchScreen("forge");else if(id==="home")switchScreen("home");else if(id==="filter"){state.collectionFilter=data;state.scrollY=0;}else if(id==="workshop")doWorkshop(data);else if(id==="claimSign")claimSign();else if(id==="closeSign")state.showSign=false;else if(id==="closeResults"){state.showResults=false;state.results=[];}else if(id==="expandHistory")state.expandedHistory=state.expandedHistory===data?"":data;else if(id==="reset")resetGame();render();}
 
 wx.onTouchStart(e=>{const t=e.touches&&e.touches[0];if(!t)return;state.touchX=t.clientX;state.touchY=t.clientY;state.lastX=t.clientX;state.lastY=t.clientY;state.moved=false;});
 wx.onTouchMove(e=>{if(state.showSign||state.showResults)return;const t=e.touches&&e.touches[0];if(!t)return;if(state.screen==="home"&&state.poolArea&&state.touchY>=state.poolArea.y&&state.touchY<=state.poolArea.y+state.poolArea.h){const dx=t.clientX-state.lastX;if(Math.abs(t.clientX-state.touchX)>6)state.moved=true;state.poolScrollX=Math.max(0,Math.min(state.maxPoolScroll,state.poolScrollX-dx));state.lastX=t.clientX;render();return;}if(!["collection","forge","history"].includes(state.screen))return;const d=t.clientY-state.lastY;if(Math.abs(t.clientY-state.touchY)>6)state.moved=true;state.scrollY=Math.max(0,Math.min(state.maxScroll,state.scrollY-d));state.lastY=t.clientY;render();});
