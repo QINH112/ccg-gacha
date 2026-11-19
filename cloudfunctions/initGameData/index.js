@@ -320,4 +320,4 @@ exports.main = async event => {
   return { ok:true,results,cards:baseCards.length+starCards.length,migratedCards };
 };
 
-exports.__test={cards:[...baseCards,...starCards],tokens:Object.values(TOKENS),designs:CARD_DESIGNS,balanceNotices:[initialBalanceNotice]};
+exports.__test={settings,cards:[...baseCards,...starCards],tokens:Object.values(TOKENS),designs:CARD_DESIGNS,balanceNotices:[initialBalanceNotice]};

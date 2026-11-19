@@ -19,3 +19,5 @@ async function save(openid,event){const slot=Math.floor(Number(event.slot));if(s
 async function clear(openid,event){const slot=Math.floor(Number(event.slot));if(slot<1||slot>5)throw new Error("牌组槽位无效");let old={};try{old=(await db.collection("playerDecks").doc(openid).get()).data;}catch(error){}const slots={...(old.slots||{}),[String(slot)]:emptySlot(slot)};await db.collection("playerDecks").doc(openid).set({data:{userId:openid,slots,updatedAt:Date.now()}});return{deck:emptySlot(slot)};}
 
 exports.main=async event=>{const{OPENID}=cloud.getWXContext();if(!OPENID)throw new Error("无法获取当前微信用户 OPENID");const action=String(event&&event.action||"list");if(action==="list")return list(OPENID);if(action==="save")return save(OPENID,event||{});if(action==="clear")return clear(OPENID,event||{});throw new Error("牌组操作无效");};
+
+exports.__test = { validate, RARITY_LIMIT };

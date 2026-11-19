@@ -159,10 +159,11 @@ node tools/test_balance_notice_accuracy.js
 node tools/test_workshop_rules.js
 node tools/test_deck_rules.js
 node tools/test_card_data_integrity.js
+node tools/test_shared_constants.js
 node tools/validate_release_readiness.js
 ```
 
-`smoke_home_capsule.js` 把微信胶囊底边设成极端值 200，断言主界面所有可点入口都在它下方；`test_balance_notice_accuracy.js` 逐字段比对平衡公告的 `after` 与权威卡牌数据，防止「改了卡忘了改公告」；`test_card_data_integrity.js` 审计全部卡牌的关键词/规则文本/效果词汇是否自洽。
+`smoke_home_capsule.js` 把微信胶囊底边设成极端值 200，断言主界面所有可点入口都在它下方；`test_balance_notice_accuracy.js` 逐字段比对平衡公告的 `after` 与权威卡牌数据，防止「改了卡忘了改公告」；`test_card_data_integrity.js` 审计全部卡牌的关键词/规则文本/效果词汇是否自洽；`test_shared_constants.js` 钉住跨文件常量（同名上限、牌组 20 张、手牌/战场/法力/英雄血量、闪耀消耗 3、非闪合成上限 9）——这些数值同时写在 `initGameData` 的 settings、`battleGame`/`deckService`/`workshop` 云函数和 `game.js` 里，改一处漏一处会立刻失败。
 
 不要使用 `design/card-template` 中的旧候选卡框作为线上素材；该目录仅保留早期研究过程，运行时使用的是依据用户手绘结构生成的原创卡框。
 
