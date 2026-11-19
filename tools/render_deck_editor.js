@@ -139,12 +139,17 @@ const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   state.deckFilters = { sets: [], rarities: [], costs: [] };
   state.deckSearch = "";
   state.deckSort = "cost";
+  if (process.argv[3] === "broken") {
+    const own = inventory.find(item => item.cardId === state.deckDraft.cards[0].cardId);
+    if (own) own.normalCount = 0;
+  }
   state.deckScroll = { left: 0, right: 0 };
   state.scrollY = 0;
   runtime.render();
   await settle();
 
-  const file = path.join(OUTPUT, `deck-editor-${viewport.width}x${viewport.height}.png`);
+  const suffix = process.argv[3] === "broken" ? "-broken" : "";
+  const file = path.join(OUTPUT, `deck-editor-${viewport.width}x${viewport.height}${suffix}.png`);
   fs.writeFileSync(file, canvas.toBuffer("image/png"));
   console.log(`deck-editor-ok ${file} cards=${runtime.deckQuantity(state.deckDraft)}/20`);
   process.exit(0);

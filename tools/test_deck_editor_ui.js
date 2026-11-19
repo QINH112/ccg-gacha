@@ -303,6 +303,34 @@ const draftCards = count => {
   assert(renderedText.some(text => text.includes("20 / 20")), "列表应显示 20 / 20 进度");
   assert(renderedText.some(text => text.includes("费用分布")), "列表应显示费用分布");
 
+  // 失效卡（库存被分解掉）要标红并给提示，但不自动改动牌组
+  const draftBefore = JSON.stringify(state.deckDraft.cards);
+  const victim = state.deckDraft.cards[0];
+  const ownVictim = state.player.inventory.find(item => item.cardId === victim.cardId);
+  const savedNormal = ownVictim.normalCount;
+  ownVictim.normalCount = 0;
+  runtime.render();
+  const issues = runtime.deckDraftIssues();
+  assert(issues.length >= 1, "库存不够时应判定为失效卡");
+  assert(issues[0].cardId === victim.cardId, "失效卡应指向被分解掉的那张");
+  assert(issues[0].issues.includes("超出拥有数量"), `失效原因应包含「超出拥有数量」，实际 ${issues[0].issues.join("/")}`);
+  assert(JSON.stringify(state.deckDraft.cards) === draftBefore, "标红不应自动改动牌组内容");
+  ownVictim.normalCount = savedNormal;
+  runtime.render();
+
+  // 一键补满：先把失效条目裁掉，再补满到 20，且结果不再有「超出拥有数量」
+  const brokenItem = state.deckDraft.cards.find(item => item.normalCount > 0);
+  const brokenOwn = state.player.inventory.find(item => item.cardId === brokenItem.cardId);
+  const keepNormal = brokenOwn.normalCount;
+  brokenOwn.normalCount = 0;
+  runtime.render();
+  assert(runtime.deckDraftIssues().length >= 1, "先把库存清 0，确认判定为失效");
+  runtime.fillDeckDraft();
+  assert(runtime.deckDraftIssues().length === 0, `一键补满后不应再有失效卡，实际 ${JSON.stringify(runtime.deckDraftIssues())}`);
+  assert(runtime.deckQuantity(state.deckDraft) === 20, `一键补满后应正好 20 张，实际 ${runtime.deckQuantity(state.deckDraft)}`);
+  brokenOwn.normalCount = keepNormal;
+  runtime.render();
+
   console.log("deck-editor-ui-ok cells=", cells.length, "fill=20 curveOk filtersOk");
 })().catch(error => {
   console.error("deck-editor-ui-failed", error);

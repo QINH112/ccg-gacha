@@ -329,6 +329,25 @@ function renderDecks(){serviceBg();const top=serviceHeader("我的牌组","最�
   });
   ctx.restore();scrollBar(top);
 }
+function deckCardIssues(cardId,normalCount,shinyCount){
+  const card=state.cards.find(item=>item.id===cardId)||null;
+  if(!card)return ["卡牌不存在"];
+  const issues=[];
+  const own=inventory(cardId);
+  if(Number(normalCount)>Number(own.normalCount)||Number(shinyCount)>Number(own.shinyCount))issues.push("超出拥有数量");
+  const limit=deckLimit(card);
+  if(Number(normalCount)+Number(shinyCount)>limit)issues.push(`超过同名上限`);
+  if(card.playable===false)issues.push("暂不可用");
+  return issues;
+}
+function deckDraftIssues(){
+  const list=(state.deckDraft&&state.deckDraft.cards)||[],result=[];
+  list.forEach(item=>{
+    const issues=deckCardIssues(item.cardId,item.normalCount,item.shinyCount);
+    if(issues.length)result.push({cardId:item.cardId,issues});
+  });
+  return result;
+}
 function deckOwnedCards(){return state.cards.filter(card=>{const own=inventory(card.id);return own.normalCount+own.shinyCount>0&&card.playable!==false&&matchesCollectionCard(card,state.deckFilters,state.deckSearch);});}
 const DECK_SORT_LABEL={cost:"费用",rarity:"稀有度",set:"卡包",owned:"拥有"};
 const RARITY_ORDER={common:0,rare:1,epic:2,legendary:3};
@@ -341,7 +360,16 @@ function deckFilterOptions(){return collectionFilterOptions();}
 function deckToggleFilter(group,value){const list=state.deckFilters[group]||[],index=list.indexOf(value);if(index>=0)list.splice(index,1);else list.push(value);state.deckScroll.left=0;render();}
 function clearDeckFilters(){state.deckFilters={sets:[],rarities:[],costs:[]};state.deckSearch="";state.deckScroll.left=0;render();}
 function deckFilterSummary(){const groups=[["sets","卡包"],["rarities","稀有度"],["costs","费用"]],parts=[];groups.forEach(([group,label])=>{const list=state.deckFilters[group]||[];if(list.length)parts.push(`${label}${list.length}`);});if(state.deckSearch)parts.push("搜索");return parts.length?parts.join(" · "):"全部卡牌";}
-function fillDeckDraft(){const draft=state.deckDraft;if(!draft)return;let added=0;for(const card of deckSortedCards()){const own=inventory(card.id),limit=deckLimit(card);let entry=deckEntry(card.id);if(!entry){entry={cardId:card.id,normalCount:0,shinyCount:0};draft.cards.push(entry);}while(deckQuantity(draft)<20&&(entry.normalCount+entry.shinyCount)<limit&&entry.normalCount<own.normalCount){entry.normalCount+=1;added+=1;}if(deckQuantity(draft)>=20)break;}if(added<=0){wx.showToast({title:"没有可补的卡牌",icon:"none"});}else{wx.showToast({title:`补入 ${added} 张`,icon:"none"});}render();}
+function fillDeckDraft(){
+  const draft=state.deckDraft;
+  if(!draft)return;
+  // 先把已经失效的条目裁到库存允许的数量（超上限/超出拥有的部分丢掉），再补满
+  const trimmed=draft.cards.length;
+  draft.cards=draft.cards.map(item=>{
+    const own=inventory(item.cardId),limit=deckLimit(state.cards.find(card=>card.id===item.cardId)||{rarity:"common"});
+    return {cardId:item.cardId,normalCount:Math.min(Number(item.normalCount)||0,own.normalCount,limit),shinyCount:Math.min(Number(item.shinyCount)||0,own.shinyCount,Math.max(0,limit-Math.min(Number(item.normalCount)||0,own.normalCount,limit)))};
+  }).filter(item=>item.normalCount+item.shinyCount>0);
+  let added=0;for(const card of deckSortedCards()){const own=inventory(card.id),limit=deckLimit(card);let entry=deckEntry(card.id);if(!entry){entry={cardId:card.id,normalCount:0,shinyCount:0};draft.cards.push(entry);}while(deckQuantity(draft)<20&&(entry.normalCount+entry.shinyCount)<limit&&entry.normalCount<own.normalCount){entry.normalCount+=1;added+=1;}if(deckQuantity(draft)>=20)break;}if(added<=0){wx.showToast({title:draft.cards.length<trimmed?"已移除失效卡牌":"没有可补的卡牌",icon:"none"});}else{wx.showToast({title:`补入 ${added} 张`,icon:"none"});}render();}
 function deckCoverCard(deck){const items=((deck&&deck.cards)||[]).map(item=>({item,card:state.cards.find(card=>card.id===item.cardId)})).filter(entry=>entry.card);if(!items.length)return null;items.sort((a,b)=>(RARITY_ORDER[b.card.rarity]||0)-(RARITY_ORDER[a.card.rarity]||0)||Number(b.card.cost)-Number(a.card.cost));return items[0].card;}
 function renderDeckEditor(){
   serviceBg();
@@ -369,14 +397,14 @@ function renderDeckEditor(){
   const scrollLeft=state.deckScroll.left,scrollRight=state.deckScroll.right;
   ctx.save();ctx.beginPath();ctx.rect(0,startY,W,H-startY-safeBottom);ctx.clip();
   text("收藏卡牌（点一下加入）",m,startY+8,9,"#aaaed0");
-  text(`当前牌组 ${count}/20`,rightX,startY+8,9,count>=20?"#f0d78d":"#aaaed0");
-  text("点下面的数字减一张",rightX,startY+20,7.5,"#8b94b8");
+  text(`当前牌组 ${count}/20`,rightX,startY+8,9,count>=20?"#f0d78d":"#aaaed0");const draftIssueIds=deckDraftIssues().map(item=>item.cardId);
+  text(draftIssueIds.length?"红框 = 已失效，点数字移除":"点下面的数字减一张",rightX,startY+20,7.5,draftIssueIds.length?"#e06c6c":"#8b94b8");
   cards.forEach((card,index)=>{const col=index%2,rowIndex=Math.floor(index/2),x=m+col*(cw+4),y=startY+28+rowIndex*(ch+gridGap)-scrollLeft;if(y+ch<startY+24||y>H)return;const own=inventory(card.id),entry=deckEntry(card.id)||{normalCount:0,shinyCount:0},used=entry.normalCount+entry.shinyCount,limit=deckLimit(card);miniCard(card,x,y,cw,ch,{transparentOuter:true,enabled:used<limit});hit("deckAdd",x,y,cw,ch,{cardId:card.id});box(x,y,cw,15,4,"#05070fcc");text(`${card.cost} 费`,x+4,y+8,8,"#ffe08a","left",700);text(`${used}/${limit}`,x+cw-5,y+8,8,used>=limit?"#e18a9b":"#c9cde2","right",700);
     const shinyFree=own.shinyCount>entry.shinyCount&&used<limit,normalFree=own.normalCount>entry.normalCount&&used<limit;
     if(shinyFree){const bx=x+cw-24,by=y+ch-19;box(bx,by,20,15,4,"#4a3a17","#f0d78d");text("闪",bx+10,by+11,9,"#ffe08a","center",700);hit("deckAdd",bx,by,20,15,{cardId:card.id,shiny:true});}
     else if(normalFree){ctx.beginPath();ctx.arc(x+cw-8,y+ch-8,3.5,0,Math.PI*2);ctx.fillStyle="#7ddfa5";ctx.fill();}
   });
-  deckItems.forEach((item,index)=>{const y=startY+28+index*(rightRowH+6)-scrollRight;if(y+rightRowH<startY+24||y>H)return;box(rightX,y,rightW,rightRowH,8,"#1c2140",COLORS[item.card.rarity].border);const thumbX=rightX+4,thumbY=y+4,thumbW=34,thumbH=54;if(!drawCardArt(item.card,thumbX,thumbY,thumbW,thumbH,COLORS[item.card.rarity].border,{radius:5})){box(thumbX,thumbY,thumbW,thumbH,5,"#0d142b",COLORS[item.card.rarity].border);text(String(item.card.cost),thumbX+thumbW/2,thumbY+thumbH/2+4,12,"#8b94b8","center",700);}text(fit(item.card.name,rightW-46,9),rightX+44,y+16,9,"#fff","left",700);text(`${item.card.cost} 费 · ${RARITY_LABEL[item.card.rarity]||""}`,rightX+44,y+29,8,"#8b94b8","left");
+  const issueIds=deckDraftIssues().map(item=>item.cardId);deckItems.forEach((item,index)=>{const y=startY+28+index*(rightRowH+6)-scrollRight;if(y+rightRowH<startY+24||y>H)return;const invalid=issueIds.indexOf(item.cardId)>=0;box(rightX,y,rightW,rightRowH,8,invalid?"#2a1a26":"#1c2140",invalid?"#e06c6c":COLORS[item.card.rarity].border);const thumbX=rightX+4,thumbY=y+4,thumbW=34,thumbH=54;if(!drawCardArt(item.card,thumbX,thumbY,thumbW,thumbH,COLORS[item.card.rarity].border,{radius:5})){box(thumbX,thumbY,thumbW,thumbH,5,"#0d142b",COLORS[item.card.rarity].border);text(String(item.card.cost),thumbX+thumbW/2,thumbY+thumbH/2+4,12,"#8b94b8","center",700);}text(fit(item.card.name,rightW-46,9),rightX+44,y+16,9,"#fff","left",700);text(`${item.card.cost} 费 · ${RARITY_LABEL[item.card.rarity]||""}`,rightX+44,y+29,8,"#8b94b8","left");
     if(item.normalCount>0){const w=Math.min(52,(rightW-48-4)/2);hit("deckRemove",rightX+44,y+33,w,17,{cardId:item.cardId,shiny:false});box(rightX+44,y+33,w,17,6,"#2a3352","#4a557d");text(`普通 ${item.normalCount}`,rightX+44+w/2,y+46,8,"#dbe2ff","center",700);}
     if(item.shinyCount>0){const w=Math.min(52,(rightW-48-4)/2),sx=rightX+rightW-5-w;hit("deckRemove",sx,y+33,w,17,{cardId:item.cardId,shiny:true});box(sx,y+33,w,17,6,"#4a3a17","#f0d78d");text(`闪卡 ${item.shinyCount}`,sx+w/2,y+46,8,"#ffe08a","center",700);}
   });
@@ -777,4 +805,4 @@ function renderFeedbackMine(startY,m){
 }
 function renderFeedback(){serviceBg();const top=serviceHeader("意见反馈","问题、建议、吐槽都可以 · 每天可提交 1 条"),m=12,half=(W-m*2-8)/2;button("feedbackTabWrite",m,top,half,32,"写反馈","",state.feedbackTab==="write");button("feedbackTabMine",m+half+8,top,half,32,"我的反馈","",state.feedbackTab==="mine");const bodyTop=top+44;if(state.feedbackTab==="mine"){renderFeedbackMine(bodyTop,m);return;}let y=bodyTop;if(state.feedbackSubmittedToday){box(m,y,W-m*2,34,10,"#3a2f14","#f0d78d");text("今天已经提交过反馈了，明天再来吧",m+10,y+22,10,"#ffe08a","left",700);y+=44;}text("反馈类型",m,y+7,10,"#aaaed0","left",700);y+=14;const chipW=Math.floor((W-m*2-6)/3);FEEDBACK_TYPES.forEach((item,index)=>{const cx=m+(index%3)*(chipW+3),cy=y+Math.floor(index/3)*34,active=state.feedbackDraft.type===item[0];box(cx,cy,chipW,30,8,active?"#4a3a87":"#1b2345",active?"#c8b6ff":"#586694");text(item[1],cx+chipW/2,cy+20,10,active?"#ffffff":"#b9c0d8","center",700);hit("feedbackType",cx,cy,chipW,30,{type:item[0]});});y+=Math.ceil(FEEDBACK_TYPES.length/3)*34+4;const contentH=86,content=feedbackDraftText();box(m,y,W-m*2,contentH,10,"#1b2345dd","#586694");if(content)wrapText(content,m+10,y+18,W-m*2-20,14,10,"#e7e2ff",4,true);else text("点这里写下你遇到的问题或建议",m+10,y+24,10,"#8f99bc","left");const shownLength=content.trim().length,counterLabel=shownLength<FEEDBACK_MIN?`${shownLength}/${FEEDBACK_MAX}（至少 ${FEEDBACK_MIN} 字）`:`${shownLength}/${FEEDBACK_MAX}`;text(counterLabel,W-m-10,y+contentH-8,8,shownLength>FEEDBACK_MAX?"#ff9b9b":shownLength<FEEDBACK_MIN?"#c8a6ff":"#8b94b8","right");hit("feedbackContent",m,y,W-m*2,contentH);y+=contentH+8;box(m,y,W-m*2,34,10,"#1b2345dd","#586694");text(state.feedbackDraft.contact?`联系方式：${state.feedbackDraft.contact}`:"联系方式（选填，方便回访）",m+10,y+22,10,state.feedbackDraft.contact?"#e7e2ff":"#8f99bc","left");hit("feedbackContact",m,y,W-m*2,34);y+=42;if(state.feedbackDraft.imagePath){box(m,y,W-m*2,76,10,"#1b2345dd","#586694");const thumb=feedbackThumb(state.feedbackDraft.imagePath);if(thumb)ctx.drawImage(thumb,m+6,y+6,64,64);else{box(m+6,y+6,64,64,8,"#0d142b","#3b466b");text("图",m+38,y+44,13,"#8b94b8","center");}text(state.feedbackDraft.imageFileID?"截图已上传":"截图上传中…",m+80,y+30,10,"#e7e2ff","left",700);text("点左侧可重新选择",m+80,y+48,8,"#8b94b8","left");button("feedbackImageClear",W-m-80,y+23,68,30,"移除","",true);hit("feedbackImagePick",m,y,W-m*2-88,76);}else{box(m,y,W-m*2,76,10,"#1b2345dd","#586694");text("+ 添加截图（选填，最多 1 张）",m+12,y+43,10,"#8f99bc","left");hit("feedbackImagePick",m,y,W-m*2,76);}y+=84;text("联系方式仅用于回访，不会公开；截图只用于定位问题。反馈只保留 7 天。",m,y+8,8,"#7f88aa","left");y+=18;const ready=feedbackDraftReady(),shortBy=Math.max(0,FEEDBACK_MIN-feedbackDraftText().trim().length);button("feedbackSubmit",m,y,W-m*2,42,state.feedbackBusy?"提交中…":"提交反馈",state.feedbackSubmittedToday?"今天已提交过":ready?"":shortBy?`还差 ${shortBy} 个字`:state.feedbackUploading?"截图还在上传":"",ready&&!state.feedbackBusy);}
 
-exports.__test={openFeedback,refreshFeedback,applyFeedbackResult,feedbackDraftReady,submitFeedback,removeFeedback,editFeedbackField,chooseFeedbackImage,feedbackTypeLabel,FEEDBACK_TYPES,clearDeckDraft,deckCurve,deckSortedCards,deckOwnedCards,addDeckCard,removeDeckCard,fillDeckDraft,deckLimit,deckQuantity,disassembleValue,cardActionState,activeBalanceAdjustment,state,render,loadCardArt,cardArt,resultsLayout};
+exports.__test={deckCardIssues,deckDraftIssues,openFeedback,refreshFeedback,applyFeedbackResult,feedbackDraftReady,submitFeedback,removeFeedback,editFeedbackField,chooseFeedbackImage,feedbackTypeLabel,FEEDBACK_TYPES,clearDeckDraft,deckCurve,deckSortedCards,deckOwnedCards,addDeckCard,removeDeckCard,fillDeckDraft,deckLimit,deckQuantity,disassembleValue,cardActionState,activeBalanceAdjustment,state,render,loadCardArt,cardArt,resultsLayout};

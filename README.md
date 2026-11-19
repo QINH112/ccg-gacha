@@ -369,3 +369,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/capture_devtools_windo
 图鉴筛选与卡牌工坊的合并方案与验收记录见 `docs/CARD_COLLECTION_FILTER_SEARCH_PLAN.md`、`docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md`。
 
 牌组编辑器的改版说明见 [`docs/DECK_EDITOR_REDESIGN.md`](docs/DECK_EDITOR_REDESIGN.md)。
+
+「日记」界面（邮件 / 任务 / 成就三合一）的设计稿与实施方案见 [`docs/DIARY_UI_PLAN.md`](docs/DIARY_UI_PLAN.md)；效果图在 `D:\kaifa\design\diary\`。
