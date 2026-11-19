@@ -85,3 +85,4 @@
 - `tools/design-root.js`
 - `tools/gen_tools_doc.py` —— 生成 docs/TOOLS.md：把 tools/ 下的脚本按用途分组列出来。
 - `tools/p7_evidence_status.py` —— P7 真机验收进度助手。
+- `tools/trim_card_art_edges.py` —— 裁掉卡牌母版边缘的纯色白带（非 AI，可复核）。

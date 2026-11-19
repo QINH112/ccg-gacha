@@ -142,6 +142,35 @@ node tools/smoke_card_art_loading.js
 - 工具不会误报成「通过」：`py tools/check_card_art_edges.py --fail` 在有明确白边或临界项时退出 1，可用于重绘后验收（重绘完这一项应该从列表里消失）。
 - 这些问题不阻塞运行时接入；替换同名母版并重新构建即可更新。
 
+### 已生成裁边候选（2026-11-19，未替换原始母版）
+
+`py tools/trim_card_art_edges.py --ids c008,r008,s008,c025 --sheet` 对这些母版做了非 AI 的
+「逐行/逐列判定纯白带 → 裁掉 → 缩放回 1024×1216」，结果写到：
+
+```text
+design/generated/edge-trimmed/<卡包>/<卡牌ID>.png
+```
+
+| 母版 | 裁掉的像素（上/下/左/右） | 裁后复检 |
+| --- | --- | --- |
+| `base/c008.png` | 25 / 29 / 31 / 29 | 无白边（sure=0, borderline=0） |
+| `base/r008.png` | 47 / 48 / 0 / 0 | 无白边 |
+| `star-remnant/s008.png` | 24 / 3 / 0 / 0 | 无白边 |
+| `base/c025.png` | 0 / 0 / 29 / 27 | 无白边（说明左右那 205 亮度确实是边框，不是画面） |
+
+前后对比图：`design/review/edge-trimmed-before-after.png`（上排 before，下排 after）。
+
+采纳方式（确认后执行，然后重新构建并跑一遍检测，`--fail` 应当通过）：
+
+```powershell
+Copy-Item "D:\kaifa\design\generated\edge-trimmed\base\c008.png" "D:\kaifa\design\card-art\source\base\c008.png"
+py tools/check_card_art_edges.py --fail
+py tools/build_card_art_subpackages.py
+```
+
+注意：裁边会改画面构图（等比裁掉边缘后缩放回原尺寸），蛋形遮罩的安全区不变，但主体会略微变大。
+`s007` 那类残笔不在这个工具的能力范围内，仍需重绘。
+
 ## 2026-11-19 素材目录迁移与发布清单修复
 
 - 背景：素材目录已迁到游戏仓库之外（`D:\kaifa\design`），但 `tools/` 下 15 个 Python 脚本和 2 个 Node 脚本仍把素材根目录硬编码为 `<仓库>/design`，导致构建、校验和 P7 证据全部指向不存在的目录。
