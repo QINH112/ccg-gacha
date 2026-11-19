@@ -37,6 +37,7 @@
 - `tools/test_shared_constants.js` —— 跨模块共享规则的「单一事实」审计：
 - `tools/test_signin_cycle.js` —— 签到奖励审计：直接跑 cloudfunctions/dailySignIn/index.js 的 exports.main，
 - `tools/test_workshop_rules.js` —— 工坊（分解 / 合成 / 闪耀）服务端规则回归：
+- `tools/test_workshop_ui.js`
 - `tools/validate_card_art_subpackages.py`
 - `tools/validate_cloudfunctions.py` —— 云函数结构校验：部署前必须全部满足，否则微信开发者工具上传会失败或运行时报错。
 - `tools/validate_package_limits.py` —— 微信小游戏代码包体积校验（平台硬限制）。
