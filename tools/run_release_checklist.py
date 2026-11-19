@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "docs" / "RELEASE_CHECKLIST.md"
 
 DANGEROUS = (
-    "rm ", "rmdir", "del ", "git push", "git reset", "git checkout", "git clean",
+    "git commit", "rm ", "rmdir", "del ", "git push", "git reset", "git checkout", "git clean",
     "npm install", "npm i ", "pip install", "mv ", "format", "shutdown",
 )
 
