@@ -52,6 +52,7 @@ node --expose-gc tools/smoke_game_interactions.js   # 含遮罩/闪光回归
 py tools/validate_ui_overlay_rules.py               # 覆盖层规范
 node tools/validate_release_readiness.js            # 发布前体检
 node tools/write_p7_evidence.js                     # 登记真机截图
+py tools/p7_evidence_status.py                       # 真机验收还差哪几条
 ```
 
 ## 四、素材与目录约定

@@ -4,6 +4,7 @@
 > 截图命名：`manual-p7-<编号>-<机型>-<日期>.png`，全部放 `D:\kaifa\design\review\`。
 > 截好之后在工程目录执行 `node tools/write_p7_evidence.js`，会把 `manual-p7-*.png` 与 `mask-diag-*.png` 一起登记进 `p7-evidence-manifest.json` 的 `deviceEvidence`；`node tools/validate_release_readiness.js` 的输出里会显示 `device=N`。
 > 记录头：机型、系统版本、微信版本、基础库版本、是否真机调试模式。
+> 随时跑 `py tools/p7_evidence_status.py` 看进度：它会列出还没过的编号、哪些已经有截图待确认、哪些连截图都没有（`--selftest` 自检解析逻辑）。
 
 本次验收机型：____________　系统：____________　微信：____________　基础库：____________
 运行方式：____________（预览扫码 / 真机调试）

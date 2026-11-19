@@ -141,6 +141,7 @@ py tools/validate_cloudfunctions.py
 - [ ] 点「预览」扫码，在手机上过 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md`
 - [ ] 重点回归：换牌只响应一次、攻击敌方英雄、敌方随从进墓地后「墓」计数、战斗内出牌不再有泛光/蒙层
 - [ ] 需要留证据时：`node tools/write_p7_evidence.js` 扫描 `D:\kaifa\design\review\` 下的 `manual-p7-*.png` 写进证据清单
+- [ ] 看还差哪几条：`py tools/p7_evidence_status.py`（截图按 `manual-p7-<编号>-<机型>-<日期>.png` 命名，脚本会按编号归类）
 
 ---
 

@@ -317,6 +317,8 @@ node tools/validate_release_readiness.js --release   # 发布前用这一档
 
 ## 窗口级截图（P7 证据）
 
+真机验收进度用 `py tools/p7_evidence_status.py` 查：它按编号统计清单里已通过/待确认/缺截图的条目，截图命名 `manual-p7-<编号>-<机型>-<日期>.png` 放在 `D:\kaifa\design\review\`。
+
 `tools/capture_devtools_window.ps1` 抓取微信开发者工具主窗口（含模拟器画面），默认输出到 `D:\kaifa\design\review\`：
 
 ```bash
