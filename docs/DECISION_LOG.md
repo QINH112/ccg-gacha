@@ -37,3 +37,5 @@
 
 - 真机验收：按 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` 的 A–F 共 29 条逐项执行。
 - 全通过后刷新证据：`node tools/write_p7_evidence.js` → `node tools/validate_release_readiness.js`。
+| Q3 | 闪卡是否要有「稀有度上限」（如普通卡最多 2 张闪）？ | 目前**没有**任何上限：客户端 `shinyEnabled = normal>=3`、服务端 shiny 分支只校验 3 张普通卡、`gameConfig` 无上限字段。`docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.3 有三条验收项基于「有上限」写成，目前无法通过 |
+

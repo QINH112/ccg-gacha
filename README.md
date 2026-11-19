@@ -156,6 +156,7 @@ py tools/validate_runtime_budget.py
 node tools/smoke_card_art_loading.js
 node tools/smoke_home_capsule.js
 node tools/test_balance_notice_accuracy.js
+node tools/test_workshop_rules.js
 node tools/validate_release_readiness.js
 ```
 
