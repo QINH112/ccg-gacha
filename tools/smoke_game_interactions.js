@@ -6,11 +6,13 @@ const cloudCalls = [];
 const renderedText = [];
 const gradient = { addColorStop: noop };
 const fills = [];
+let fillsDuringHold = [];
 const contextTarget = {
   createLinearGradient: () => gradient,
   measureText: value => ({ width: String(value).length * 8 }),
   roundRect: noop,
   fillRect: () => { fills.push(contextTarget.fillStyle); },
+  fill: () => { fills.push(contextTarget.fillStyle); },
   fillText: value => renderedText.push(String(value)),
 };
 const context = new Proxy(contextTarget, {
@@ -109,6 +111,8 @@ function tap(x, y) {
 function hold(x, y, duration = 560) {
   handlers.touchStart({ touches: [{ clientX: x, clientY: y }] });
   return new Promise(resolve => setTimeout(() => {
+    // 松手前把这一帧的填充色记下来：松手后详情就关了，事后取不到战斗内详情的绘制
+    fillsDuringHold = [...fills];
     handlers.touchEnd({ changedTouches: [{ clientX: x, clientY: y }] });
     resolve();
   }, duration));
@@ -135,6 +139,10 @@ async function settle() {
   if (!cloudCalls.includes("battleGame:mulligan")) throw new Error("Mulligan action was not reached");
   // 战斗内长按走 battleHold 分支：只显示「松手关闭」，不显示分解/合成按钮（见 docs/UI_OVERLAY_RULES.md）
   if (!renderedText.includes("松手关闭") && !renderedText.includes("点击卡牌外关闭")) throw new Error("Long-press card detail was not rendered");
+  // 战斗内详情不得有任何承托面板或全屏蒙层（2026-11-19 用户要求去掉卡牌外的矩形框，见 D25）
+  if (!fillsDuringHold.some(value => fillsDuringHold.length)) throw new Error("Hold snapshot was empty");
+  if (fillsDuringHold.includes("#0b1226ee")) throw new Error("Battle card detail must not draw a backing panel");
+  if (fillsDuringHold.includes("#02040ca8") || fillsDuringHold.includes("#02040ce8")) throw new Error("Battle card detail must not dim the battlefield");
   tap(5, 5);
   tap(345, 825);
   await settle();

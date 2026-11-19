@@ -51,8 +51,10 @@ if "function resetOverlays(" not in source:
     failures.append("缺少 resetOverlays() 统一清理入口")
 
 
-if "box(6," not in detail:
-    failures.append("renderCardDetail 战斗中应使用 box(6, ...) 面板承托卡牌")
+if "box(6," in detail:
+    failures.append("renderCardDetail 战斗中不应给卡牌加面板/边框（2026-11-19 用户要求去掉矩形框）")
+if 'holdLabel("松手关闭"' not in detail:
+    failures.append("战斗内详情必须用 holdLabel 绘制文字（无面板承托时靠描边保证可读）")
 
 action = function_body("battleAction")
 for flag in ("showCardDetail", "detailHold", "battleSkillDetail"):
