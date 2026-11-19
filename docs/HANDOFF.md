@@ -99,3 +99,12 @@ py tools/p7_evidence_status.py                       # 真机验收还差哪几�
 - 素材母版/生成图/QA 截图只写 `D:\kaifa\design`，游戏目录只接收构建脚本产出的运行时版本
 - 卡图发布：母版 → `design/card-art/art-config.json` → `py tools/build_card_art_subpackages.py`；**未列入 art-config 的 ID 下次构建会被删除**
 - 包体硬限制：主包 ≤ 4MB、主包+分包合计 ≤ 30MB；当前主包 2.91MB（73%）、合计 10.33MB，以 `py tools/validate_package_limits.py` 为准
+
+## 二·补4 进入战斗报 -504002（2026-11-20 排查）
+
+用户点「开始对战」时弹 `-1: cloud.callFunction:fail Error: errCode: -504002`。
+
+- 本地已用 `tools/test_battle_start.js` 端到端跑通 `battleGame` 的 `action:"start"`（真实 `validateDeck`/`expandDeck`/`cleanAiDeck`），说明**代码路径本身没问题**，`-504002` 是线上运行时抛错。
+- 已加固：`start()` 在读取存档后先做三项防御（存档不存在 / `inventory` 不是数组 / `cards` 为空），并把 `cleanAiDeck` 结果校验为 20 张，坏数据时给出中文原因而不是裸 `TypeError`。
+- 客户端 `cloudError()` 增加错误码映射：`-504002/-504003…` → 「云函数执行异常（-504002），请查看云开发日志」，`-1: cloud.callFunction:fail` → 「云端调用失败，请稍后重试」。
+- **下一步需要用户**：微信开发者工具 → 云开发 → 云函数 → `battleGame` → 日志，把点「开始对战」那一秒的红色报错行发我；若有多条，优先看含 `TypeError` 或 `document not found` 的。
