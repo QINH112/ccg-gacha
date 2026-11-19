@@ -82,6 +82,14 @@
 - 校验：`tools/validate_ui_overlay_rules.py` 断言 `battleMini` 必须传 `transparentOuter:true`，且不允许只用描边做选中反馈。
 - 可视化：`node tools/render_battle_canvas.js` 用真实 canvas 渲染整屏，产物在 `design/review/battle-canvas-<宽>x<高>.png`。
 
+## 3.7 加载反馈：不许用全屏遮罩
+
+- 任何请求**都不许**立刻盖全屏「处理中」蒙层——它会让人误以为卡死。
+- 口径：请求超时 400ms 才在顶部显示一行小字「加载中…」（`state.slowLoading`）；请求结束立刻消失。
+- 进页面一律**先切屏再拉数据**：先画缓存/空占位，数据回来再 `render()`，不要让用户停在原页面等。
+- 输入不再整页冻结：导航入口永远可点；只有会写云端的动作在飞行中拒绝重复下发（`state.actionInflight[id]`）。
+- 回归：`node tools/test_loading_feedback.js`（400ms 前不提示 / 之后提示 / 立刻切页 / 同动作连点只下发一次）。
+
 ## 4. 变更记录
 
 - 2026-11-19：战斗内卡牌详情改为面板式、取消全屏遮罩；`battleAction()` 提交前清除所有覆盖层状态。真机反馈见 `docs/BATTLE_DRAG_UPGRADE_PLAN.md` §13 D18。

@@ -42,6 +42,14 @@
 
 `grantBattleReward` 在 `logFinished()` 里只调用一次（`battleLogs` 首插成功才发奖），所以不会重复发；奖励对象写回 `game.reward`，客户端从 `battleStatus` 拿到后渲染。
 
+## 2026-11-19 用户确认（加载反馈）
+
+| # | 决策 | 结论 | 落地 |
+| --- | --- | --- | --- |
+| Q15 | 全屏「云端处理中…」 | **删掉**。请求超过 **400ms** 才在顶部显示一行小字「加载中…」（`state.slowLoading`），1 秒内返回完全无感 | `game.js` 的 `beginRequest/endRequest` + `render()` 顶部胶囊 |
+| Q16 | 进服务页的时机 | **立刻切页**，先显示缓存或空占位，数据到了再填（`loadDecks/loadHistory/loadBattleHistory` 改成先 `switchScreen` 再请求） | 同上三个函数 |
+| Q17 | 加载中的输入 | 不再整页冻结；导航入口随时可点，**只有会写云端的动作在飞行中拒绝重复下发**（`state.actionInflight`），防止连点重复扣券/重复保存 | `activate()` 的 `NO_TAP_LOCK` + `trackAction/releaseAction` |
+
 ## 待用户确认
 
 （当前无待确认项。2026-11-19 用户已就下列两项拍板，见下。）

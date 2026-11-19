@@ -43,6 +43,7 @@
 - `tools/test_draw_results_layout.js`
 - `tools/test_game_services.js`
 - `tools/test_legacy_account.js`
+- `tools/test_loading_feedback.js`
 - `tools/test_shared_constants.js` —— 跨模块共享规则的「单一事实」审计：
 - `tools/test_signin_cycle.js` —— 签到奖励审计：直接跑 cloudfunctions/dailySignIn/index.js 的 exports.main，
 - `tools/test_workshop_rules.js` —— 工坊（分解 / 合成 / 闪耀）服务端规则回归：
