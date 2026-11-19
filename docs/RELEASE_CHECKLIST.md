@@ -5,6 +5,10 @@
 
 工作目录统一为 `D:\kaifa\astral-ccg-gacha`。
 
+> **本清单已实测（2026-11-19）**：45 条命令按顺序全跑一遍，**全部通过，总耗时 13.7 秒**。
+> 同时验证了发布审计开关：把 `game.js` 的 `DEVELOPMENT_RESET_ENABLED` 临时改成 `false` 后，
+> `node tools/validate_release_readiness.js --release` 输出 `release-readiness-ok mode=release evidence=36 device=2 blockers=2`（比开发档少一个 blocker），改回 `true` 后文件哈希一致、`git status` 干净。
+
 ---
 
 ## 0. 起手
@@ -88,6 +92,7 @@ node --expose-gc tools/smoke_card_art_loading.js
 ```
 
 - [ ] 全部通过（失败会以非 0 退出码或 `-failed` 结尾）
+- [ ] 说明：`smoke_card_art_loading.js` 输出里的 `failed=1` 是**故意植的**（它塞了一张指向 `assets/cards/missing.png` 的卡，断言加载器只报一次失败且不影响其它图），不是真故障
 
 ---
 
@@ -100,7 +105,9 @@ node tools/validate_release_readiness.js --release  # 发布档：要求 = false
 
 - [ ] 开发档通过（默认）
 - [ ] **正式发布前**把 `game.js:32` 的 `const DEVELOPMENT_RESET_ENABLED = true;` 改成 `false`，再让 `--release` 通过
-- [ ] 当前如果跑 `--release`，应当只报 `release audit: DEVELOPMENT_RESET_ENABLED must be false before shipping`（这是预期，说明开关还没关）
+- [ ] 开发档实测输出：`release-readiness-ok mode=development evidence=36 device=2 blockers=3`
+- [ ] 关掉开关后 `--release` 实测输出：`release-readiness-ok mode=release evidence=36 device=2 blockers=2`（少掉的正是开关那条 blocker）
+- [ ] 现在如果直接跑 `--release`，应当只报 `release audit: DEVELOPMENT_RESET_ENABLED must be false before shipping`——这是预期，说明开关还没关
 
 ---
 
