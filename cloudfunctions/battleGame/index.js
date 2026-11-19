@@ -6,7 +6,7 @@ const db=cloud.database();
 
 const LIMIT={common:3,rare:2,epic:2,legendary:1};
 const DIFFICULTIES=new Set(["easy","normal","hard"]);
-const SKILLS={"draw-two":{name:"星界洞察",cost:3,action:"draw",value:2},"heal-five":{name:"星光愈合",cost:3,action:"heal",value:5}};
+const SKILLS={"draw-two":{name:"洞察",cost:3,action:"draw",value:2},"heal-five":{name:"愈合",cost:3,action:"heal",value:5}};
 const BATTLE_REWARD={win:[80,120],loss:[20,40],dailyCap:2000,minDurationMs:30000};
 const TURN_MS=75000,EXPIRE_MS=7*86400000,HAND_LIMIT=10,BOARD_LIMIT=7,MAX_HALF_TURNS=100;
 
