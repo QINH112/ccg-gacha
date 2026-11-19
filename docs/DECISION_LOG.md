@@ -48,6 +48,16 @@
 
 ## 待办衔接
 
-- 真机验收：按 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` 的 A–F 共 29 条逐项执行。
+- 真机验收：按 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` 的 A–F 共 29 条逐项执行，当前 `devices=28 passed=1 pending=27`（`py tools/p7_evidence_status.py`）。
 - 全通过后刷新证据：`node tools/write_p7_evidence.js` → `node tools/validate_release_readiness.js`。
+
+## 验收清单结清进度（2026-11-19）
+
+| 清单 | 起始未勾 | 现在未勾 | 说明 |
+| --- | --- | --- | --- |
+| `CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7 | 35 | **0** | 28 条转成自动化断言，3 条按「闪卡不设上限」标不适用，其余合并入口等已由结构变更消除 |
+| `CARD_DESIGN_PLAN.md` §5 | 20 | **7** | 13 条映射到 `test_card_designs` / `test_card_data_integrity` / `test_battle_engine` / `test_ai_behavior` 等；剩 7 条是人工平衡审查与逐卡确认 |
+| `CARD_BALANCE_ANNOUNCEMENT_PLAN.md` | 2 | **0** | 胶囊避让与前后对比准确性两条转成 `smoke_home_capsule.js`、`test_balance_notice_accuracy.js` |
+| `P7_DEVICE_ACCEPTANCE_CHECKLIST.md` | 28 | 27 | 只能真机，B7 已过 |
+| `RELEASE_CHECKLIST.md` | 45 | 45 | 发版时逐条过，不预先勾选 |
 

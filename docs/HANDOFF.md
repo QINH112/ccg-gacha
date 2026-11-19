@@ -15,15 +15,15 @@
 
 防护：`tools/validate_ui_overlay_rules.py` 静态校验（全屏填充必须可追踪 / 调度器必须接力 / 限时高亮必须挂定时器 / 切屏必须 `resetOverlays()`）；`tools/smoke_game_interactions.js` 运行时断言（连闪两次必须清除）。
 
-## 二、等你动手的三件事
+## 二、等你动手的事（2026-11-19 最新）
 
-1. ~~**重新预览 + 重传云函数**~~ → **用户 2026-11-19 表示已解决**（已重新上传 `cloudfunctions/workshop`、已重新预览；手机上合成上限应为 9 张）。今后客户端每次改动仍需重新「预览」扫码才上手机。
-2. **Q3 未决**：闪卡要不要做稀有度上限？当前代码**完全没有闪卡上限**（只受「3 张普通卡」约束，`gameConfig` 里也没有 `shinyLimit` 字段）。验收清单里 3 条依赖这个答案，见 `docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.3 与 `docs/DECISION_LOG.md`。
-3. **真机外观验收（17 条）与 3 张素材瑕疵**：真机项见 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md`（B 组已过，剩余是工坊/图鉴布局与对局手感）；素材瑕疵 `base/c008`、`base/r008`、`star-remnant/s007` 需启动 ComfyUI 重绘，按你的要求先放着。
+本地能自查的全部做完并回归通过，剩下三件必须由人来判断或只能真机做：
 
-~~是否首次提交~~ **已完成**：2026-11-19 首次完整提交 `aa26e5f`，220 个文件、233 个受控文件、`.git` 约 15MB；此后改动可回滚。
+1. **真机验收 27 条**：见 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md`。当前 `py tools/p7_evidence_status.py` 输出 `devices=28 passed=1 pending=27`，唯一已通过的是 B7（遮罩）。按清单逐条在手机上点，通过就勾 `☑`，不通过截 `manual-p7-<编号>.png` 放进 `D:\kaifa\design\review\`，工具会自动关联。
+2. **Q4：不合法牌组要不要硬拒绝保存？** 文档 §7.4 写「不合法则拒绝保存」，实际实现是「允许保存但标 `valid:false`、不可开战」，客户端提示「已保存未完成牌组」。这是可用性选择，需要你拍板。见 `docs/DECISION_LOG.md`。
+3. **卡牌平衡 7 条**：`docs/CARD_DESIGN_PLAN.md` §5 仍留 7 条 `[ ]`，都是「每张卡的人工审查」「同费用卡优劣关系」「斩杀上限审查」这类需要人判断的项，代码只能提供数据。
 
-Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-11-19 拍板并落地，见 `docs/DECISION_LOG.md`。
+已结案、不用再管的：Q1（分解不二次确认）、Q2（非闪上限 9 张）、Q3（闪卡不设上限）、素材白边（不处理）、首次提交（已完成）、云函数上传与预览（用户已解决）。
 
 ## 二·补、本轮补上的自动化（2026-11-19）
 
@@ -39,6 +39,17 @@ Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-1
 | `tools/validate_cloudfunctions.py` | 空的云函数目录、缺 `wx-server-sdk`、客户端调不存在的函数 |
 | `tools/validate_package_limits.py` | 主包超 4MB、合计超 30MB |
 | `tools/validate_tool_inventory.py` | 工具脚本与 `docs/TOOLS.md` 清单脱节 |
+| `tools/validate_docs_consistency.py` | 文档引用不存在的脚本、卡牌数量口径不一致、孤儿文档、把旧数字写成当前口径 |
+| `tools/test_deck_save.js` | 牌组存档与库存按版本校验、清空槽位、非法槽位 |
+| `tools/test_legacy_account.js` | 旧存档迁移丢库存/星尘/牌组/战绩，或重复补票 |
+| `tools/smoke_collection_navigation.js` | 图鉴进出、开合详情、滚动越界、覆盖层残留 |
+| `tools/test_battle_snapshot.js` | 改动库存/牌组会影响已开始的对局 |
+| `tools/test_ai_behavior.js` | AI 不打脸、越城墙、有能量不出牌、能斩杀不斩、超战场上限 |
+| `tools/test_collection_layout.js` | 图鉴三列网格、列间距、标签成对、命中区越界 |
+| `tools/test_workshop_ui.js` | 工坊按钮文案、分解不弹确认、合成扣星尘、闪耀置灰 |
+| `tools/smoke_render_budget.js` | 战场压满时单帧渲染开销（stub canvas，不含 GPU） |
+| `tools/check_card_art_edges.py` | 母版四周白边（当前 `sure=3 borderline=1`） |
+| `tools/p7_evidence_status.py` | 真机验收还剩哪几条、截图是否配对 |
 
 ## 二·补 素材边框的现状（2026-11-19 第 29–30 轮）
 

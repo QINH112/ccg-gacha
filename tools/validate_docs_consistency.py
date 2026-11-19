@@ -126,11 +126,26 @@ def check_history_markers() -> None:
                     fail(f"docs/{path.name}:{line_no} 仍把 {value} 张写成当前口径：{line.strip()[:60]}")
 
 
+def check_control_chars() -> None:
+    """5. 文档里不能出现游离的控制字符（例如 python 把 \\r 写坏成回车）。"""
+    for path in sorted(DOCS.glob("*.md")) + [ROOT / "README.md"] + AGENTS:
+        if not path.exists():
+            continue
+        # 必须按字节读：文本模式的通用换行会把 \r 悄悄变成 \n，就查不出来了
+        text = path.read_bytes().decode("utf-8")
+        for index, char in enumerate(text):
+            if ord(char) < 32 and char not in "\n\t":
+                line_no = text.count("\n", 0, index) + 1
+                fail(f"{path.name}:{line_no} 含有控制字符 U+{ord(char):04X}（多半是转义写坏了）")
+                break
+
+
 def main() -> int:
     checked = check_tool_references()
     check_card_counts()
     check_orphan_docs()
     check_history_markers()
+    check_control_chars()
 
     if FAILURES:
         print("docs-consistency-failed")
