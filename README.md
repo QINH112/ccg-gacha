@@ -154,6 +154,7 @@ py tools/build_card_frame_variants.py
 py tools/validate_visual_assets.py
 py tools/validate_runtime_budget.py
 py tools/validate_cloudfunctions.py
+py tools/validate_package_limits.py
 node tools/smoke_card_art_loading.js
 node tools/smoke_home_capsule.js
 node tools/test_balance_notice_accuracy.js
@@ -330,9 +331,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/capture_devtools_windo
 | --- | --- | --- |
 | 运行时美术资源 | `py tools/validate_runtime_budget.py` 的 `art=` | `2,363,116 B`（上限 `2,500,000 B`） |
 | 卡牌立绘双分包 | `py tools/validate_card_art_subpackages.py` 的 `bytes=` | `7,775,214 B`（74 张：基础 54 + 星骸 20） |
+| **主包（平台硬限制 4 MB）** | `py tools/validate_package_limits.py` 的 `main=` | `3,046,820 B` = `2.91 MB`（占 4 MB 的 73%） |
+| **主包 + 分包合计（平台硬限制 30 MB）** | 同上 `total=` | `10,826,845 B` = `10.33 MB`（占 30 MB 的 34%） |
 
-- 微信小游戏总包上限 30MB，当前主包 + 双分包合计远低于上限。
-- `tools/validate_runtime_budget.py` 里的 `previewTotal` / `main` 在有分包时可能显示 0，这是脚本的统计口径问题，不代表包体为空；判断包体请用上表两个数字。
+- 平台规则：主包不超过 4 MB，主包 + 所有分包不超过 30 MB（[官方文档](https://developers.weixin.qq.com/minigame/dev/guide/base-ability/code-package.html)）。
+- `validate_package_limits.py` 按真实打包口径算：跳过 `subpackages/`（单独计数）、跳过 `cloudfunctions/`（云函数单独上传，不进代码包）、按 `project.config.json` 的 `packOptions.ignore` 排除 `design/`、`docs/`、`tools/` 与两个未使用的背景图。
+- `tools/validate_runtime_budget.py` 里的 `previewTotal` / `main` 在有分包时可能显示 0，这是脚本的统计口径问题，不代表包体为空；判断包体请用上表数字。
+- 主包 73% 已用，剩下约 1.1 MB 空间：新增主包资源前先跑 `validate_package_limits.py`，超过 90% 会打印 `package-limits-warn`。
 
 ## 当前状态
 
