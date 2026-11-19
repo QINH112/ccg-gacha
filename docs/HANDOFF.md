@@ -15,12 +15,30 @@
 
 防护：`tools/validate_ui_overlay_rules.py` 静态校验（全屏填充必须可追踪 / 调度器必须接力 / 限时高亮必须挂定时器 / 切屏必须 `resetOverlays()`）；`tools/smoke_game_interactions.js` 运行时断言（连闪两次必须清除）。
 
-## 二、等你动手的两件事
+## 二、等你动手的三件事
 
-1. **重新预览 + 重传云函数**：客户端改了什么必须重编译才能上手机；`cloudfunctions/workshop`（合成上限改 9 张）需要重新上传。
-2. ~~是否首次提交~~ **已完成**：2026-11-19 首次完整提交 `aa26e5f`，220 个文件、233 个受控文件、`.git` 约 15MB；此后改动可回滚。
+1. **重新预览 + 重传云函数**：客户端改了什么必须重新「预览」扫码才上手机；`cloudfunctions/workshop`（合成上限改 9 张）需要重新上传，否则手机上仍是 2 张上限。
+2. **Q3 未决**：闪卡要不要做稀有度上限？当前代码**完全没有闪卡上限**（只受「3 张普通卡」约束，`gameConfig` 里也没有 `shinyLimit` 字段）。验收清单里 3 条依赖这个答案，见 `docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.3 与 `docs/DECISION_LOG.md`。
+3. **真机外观验收（17 条）与 3 张素材瑕疵**：真机项见 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md`（B 组已过，剩余是工坊/图鉴布局与对局手感）；素材瑕疵 `base/c008`、`base/r008`、`star-remnant/s007` 需启动 ComfyUI 重绘，按你的要求先放着。
+
+~~是否首次提交~~ **已完成**：2026-11-19 首次完整提交 `aa26e5f`，220 个文件、233 个受控文件、`.git` 约 15MB；此后改动可回滚。
 
 Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-11-19 拍板并落地，见 `docs/DECISION_LOG.md`。
+
+## 二·补、本轮补上的自动化（2026-11-19）
+
+| 检查 | 挡什么问题 |
+| --- | --- |
+| `tools/test_card_data_integrity.js` | 卡牌关键词与 `rulesText` 不一致、效果用错引擎词汇 |
+| `tools/test_shared_constants.js` | 同名上限/牌组张数/战斗常量在四处各写一遍，改一处漏一处 |
+| `tools/test_draw_pity.js` | 第 40 抽保底、十连保底、抽卡失败分支 |
+| `tools/test_signin_cycle.js` | 7 天签到循环、每日一次、循环结束后转每日奖励 |
+| `tools/test_workshop_rules.js` | 合成/分解/星尘/闪耀/调整窗口返还原价 |
+| `tools/test_deck_rules.js` | 牌组 20 张、同名上限、库存按版本校验（普通与闪卡不能互补） |
+| `tools/test_admin_crud.js` | 管理端邮件/任务/公告/发奖/改卡的写入契约 |
+| `tools/validate_cloudfunctions.py` | 空的云函数目录、缺 `wx-server-sdk`、客户端调不存在的函数 |
+| `tools/validate_package_limits.py` | 主包超 4MB、合计超 30MB |
+| `tools/validate_tool_inventory.py` | 工具脚本与 `docs/TOOLS.md` 清单脱节 |
 
 ## 三、常用命令
 
@@ -38,4 +56,4 @@ node tools/write_p7_evidence.js                     # 登记真机截图
 
 - 素材母版/生成图/QA 截图只写 `D:\kaifa\design`，游戏目录只接收构建脚本产出的运行时版本
 - 卡图发布：母版 → `design/card-art/art-config.json` → `py tools/build_card_art_subpackages.py`；**未列入 art-config 的 ID 下次构建会被删除**
-- 包体上限 30MB，当前口径见 `README.md`「包体体积的权威口径」
+- 包体硬限制：主包 ≤ 4MB、主包+分包合计 ≤ 30MB；当前主包 2.91MB（73%）、合计 10.33MB，以 `py tools/validate_package_limits.py` 为准
