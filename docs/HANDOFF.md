@@ -40,6 +40,13 @@ Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-1
 | `tools/validate_package_limits.py` | 主包超 4MB、合计超 30MB |
 | `tools/validate_tool_inventory.py` | 工具脚本与 `docs/TOOLS.md` 清单脱节 |
 
+## 二·补 素材边框的现状（2026-11-19 第 29–30 轮）
+
+- 检测：`py tools/check_card_art_edges.py` → `checked=94 sure=3 borderline=1`。明确白边是 `base/c008.png`（四边）、`base/r008.png`（上下）、`star-remnant/s008.png`（上，**本轮新发现**）；临界是 `base/c025.png`（左右，亮度 205–208）。
+- 修法已备好但**没有动原始母版**：`py tools/trim_card_art_edges.py --ids c008,r008,s008,c025 --sheet` 生成到 `design/generated/edge-trimmed/`，前后对比图 `design/review/edge-trimmed-before-after.png`。裁掉的像素分别是 c008 25/29/31/29、r008 47/48/0/0、s008 24/3/0/0、c025 0/0/29/27；对裁后结果重跑检测是 `sure=0 borderline=0`。
+- 你只要说「采纳」，我就把四张拷进 `design/card-art/source/` 并重新构建两个分包；不想采纳就保持现状（不影响发布）。
+- `star-remnant/s007.png` 的右下残笔无法用亮度规则判定（边缘 std 87.2 是全库最高，但正常满幅画面 std 也在 77–86），只能靠重绘。
+
 ## 三、常用命令
 
 要发版时不用记顺序，直接走 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)（7 步，45 条可复制命令）。
