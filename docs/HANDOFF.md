@@ -46,6 +46,7 @@ Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-1
 - 修法已备好但**没有动原始母版**：`py tools/trim_card_art_edges.py --ids c008,r008,s008,c025 --sheet` 生成到 `design/generated/edge-trimmed/`，前后对比图 `design/review/edge-trimmed-before-after.png`。裁掉的像素分别是 c008 25/29/31/29、r008 47/48/0/0、s008 24/3/0/0、c025 0/0/29/27；对裁后结果重跑检测是 `sure=0 borderline=0`。
 - 你只要说「采纳」，我就把四张拷进 `design/card-art/source/` 并重新构建两个分包；不想采纳就保持现状（不影响发布）。
 - `star-remnant/s007.png` 的右下残笔无法用亮度规则判定（边缘 std 87.2 是全库最高，但正常满幅画面 std 也在 77–86），只能靠重绘。
+- 包体影响实测：四张裁边母版重建后运行时 JPG 合计 `+18,769 B`（基础包 +16.7KB、星骸包 +2.1KB），可忽略。
 
 ## 三、常用命令
 
