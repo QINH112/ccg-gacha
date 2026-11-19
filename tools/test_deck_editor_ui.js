@@ -128,6 +128,8 @@ function openEditor() {
 }
 
 const hitOf = (id, predicate) => state.hit.filter(item => item.id === id).filter(item => !predicate || predicate(item.data || {}));
+const faces = () => state.hit.filter(item => item.id === "deckAdd" && !(item.data && item.data.shiny));
+const shinyChips = () => state.hit.filter(item => item.id === "deckAdd" && item.data && item.data.shiny);
 
 async function tap(data) {
   const start = { touches: [{ clientX: data.x + 4, clientY: data.y + 4 }] };
@@ -135,6 +137,17 @@ async function tap(data) {
   handlers.touchEnd && handlers.touchEnd({ touches: [], changedTouches: [{ clientX: data.x + 4, clientY: data.y + 4 }] });
   await settle();
 }
+
+const draftCards = count => {
+  const cards2 = [];
+  let total = 0;
+  for (const card of runtime.deckSortedCards()) {
+    if (total >= count) break;
+    const take = Math.min(runtime.deckLimit(card), count - total);
+    if (take > 0) { cards2.push({ cardId: card.id, normalCount: take, shinyCount: 0 }); total += take; }
+  }
+  return cards2;
+};
 
 (async () => {
   await Promise.resolve();
@@ -146,7 +159,7 @@ async function tap(data) {
   openEditor();
 
   // 1) 2 列网格：前两张卡同一行、x 不同、都在屏内
-  const cells = hitOf("deckAdd");
+  const cells = faces();
   assert(cells.length > 0, "卡面网格没有任何可点区域");
   const first = cells[0], second = cells[1];
   assert(Math.abs(first.y - second.y) < 0.5, "前两张卡应在同一行");
@@ -171,7 +184,7 @@ async function tap(data) {
   toastCalls.length = 0;
   for (let index = 0; index < limit + 2; index += 1) {
     runtime.render();
-    const sameCell = hitOf("deckAdd", data => data.cardId === target)[0];
+    const sameCell = faces().filter(item => item.data.cardId === target)[0];
     if (!sameCell) break;
     await tap({ x: sameCell.x, y: sameCell.y });
   }
@@ -181,7 +194,7 @@ async function tap(data) {
 
   // 4) 右侧点数字减一张
   openEditor();
-  let cell = hitOf("deckAdd", data => data.cardId === target)[0];
+  let cell = faces().filter(item => item.data.cardId === target)[0];
   await tap({ x: cell.x, y: cell.y });
   await tap({ x: cell.x, y: cell.y });
   const quantityBefore = runtime.deckQuantity(state.deckDraft);
@@ -200,7 +213,7 @@ async function tap(data) {
   toastCalls.length = 0;
   openEditor();
   runtime.fillDeckDraft();
-  const extraCell = hitOf("deckAdd")[0];
+  const extraCell = faces()[0];
   await tap({ x: extraCell.x, y: extraCell.y });
   assert(runtime.deckQuantity(state.deckDraft) === 20, "满 20 张后不应再加");
   assert(toastCalls.some(text => text.includes("20")), "满 20 张应提示");
@@ -245,6 +258,50 @@ async function tap(data) {
   await tap({ x: clearHit.x, y: clearHit.y });
   await settle();
   assert(runtime.deckQuantity(state.deckDraft) === 0, `清空后应为 0 张，实际 ${runtime.deckQuantity(state.deckDraft)}`);
+
+  // 11) 闪卡按钮：有闪卡库存的卡面会出现「闪」，点它加的是闪卡版
+  openEditor();
+  const shinyCardId = (() => {
+    const entry = player.inventory.find(item => item.shinyCount > 0);
+    return entry ? entry.cardId : null;
+  })();
+  assert(shinyCardId, "测试数据里应有闪卡库存");
+  runtime.render();
+  const chips = shinyChips().filter(item => item.data.cardId === shinyCardId);
+  assert(chips.length > 0, "有闪卡库存的卡面应出现「闪」按钮");
+  await tap({ x: chips[0].x, y: chips[0].y });
+  const shinyEntry = state.deckDraft.cards.find(item => item.cardId === shinyCardId);
+  assert(shinyEntry && shinyEntry.shinyCount === 1, `点「闪」应加一张闪卡，实际 ${JSON.stringify(shinyEntry)}`);
+
+  // 12) 左右两栏独立滚动：滑左边只动左栏
+  openEditor();
+  runtime.fillDeckDraft();
+  runtime.render();
+  const beforeLeft = state.deckScroll.left;
+  const beforeRight = state.deckScroll.right;
+  handlers.touchStart({ touches: [{ clientX: device.width * 0.2, clientY: 700 }] });
+  handlers.touchMove({ touches: [{ clientX: device.width * 0.2, clientY: 600 }] });
+  assert(state.deckScroll.left > beforeLeft, "滑左栏应让左栏向下滚");
+  assert(state.deckScroll.right === beforeRight, "滑左栏不应带动右栏");
+  const leftAfter = state.deckScroll.left;
+  handlers.touchStart({ touches: [{ clientX: device.width * 0.85, clientY: 700 }] });
+  handlers.touchMove({ touches: [{ clientX: device.width * 0.85, clientY: 600 }] });
+  assert(state.deckScroll.right > 0, "滑右栏应让右栏向下滚");
+  assert(state.deckScroll.left === leftAfter, "滑右栏不应改动左栏");
+
+  // 13) 我的牌组列表页：封面 + 费用分布 + 编辑/新建按钮
+  const sampleDeck = { slot: 1, name: "列表样张", generalSkill: "heal-five", valid: true, count: 20, cards: draftCards(20) };
+  const emptyDeck = { slot: 2, name: "牌组 2", generalSkill: "draw-two", valid: false, count: 0, cards: [] };
+  state.decks = [sampleDeck, emptyDeck];
+  state.screen = "decks";
+  state.scrollY = 0;
+  renderedText.length = 0;
+  runtime.render();
+  assert(hitOf("editDeck").length === 1, "有牌的牌组应显示「编辑」");
+  assert(hitOf("newDeck").length === 1, "空牌组应显示「新建」");
+  assert(renderedText.includes("列表样张"), "列表应显示牌组名");
+  assert(renderedText.some(text => text.includes("20 / 20")), "列表应显示 20 / 20 进度");
+  assert(renderedText.some(text => text.includes("费用分布")), "列表应显示费用分布");
 
   console.log("deck-editor-ui-ok cells=", cells.length, "fill=20 curveOk filtersOk");
 })().catch(error => {

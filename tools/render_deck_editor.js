@@ -96,25 +96,49 @@ const settle = () => new Promise(resolve => setTimeout(resolve, 0));
   await settle();
   await settle();
 
+  const listMode = process.argv[3] === "list";
+  const buildDeck = (name, skill, size) => {
+    const draft = { slot: 1, name, generalSkill: skill, cards: [] };
+    for (const card of cards.slice().sort((a, b) => Number(a.cost) - Number(b.cost))) {
+      if (runtime.deckQuantity(draft) >= size) break;
+      const own = inventory.find(item => item.cardId === card.id);
+      if (!own || own.normalCount <= 0) continue;
+      const limit = runtime.deckLimit(card);
+      const take = Math.min(limit, own.normalCount, size - runtime.deckQuantity(draft));
+      if (take > 0) draft.cards.push({ cardId: card.id, normalCount: take, shinyCount: 0 });
+    }
+    return draft;
+  };
+
+  if (listMode) {
+    state.showSign = false;
+    state.decks = [
+      { slot: 1, name: "帅哥的卡组", generalSkill: "heal-five", valid: true, count: 20, cards: buildDeck("帅哥的卡组", "heal-five", 20).cards },
+      { slot: 2, name: "快攻星骸", generalSkill: "draw-two", valid: true, count: 20, cards: buildDeck("快攻星骸", "draw-two", 20).cards },
+      { slot: 3, name: "未完成实验", generalSkill: "draw-two", valid: false, count: 11, cards: buildDeck("未完成实验", "draw-two", 11).cards },
+      { slot: 4, name: "牌组 4", generalSkill: "draw-two", valid: false, count: 0, cards: [] },
+      { slot: 5, name: "牌组 5", generalSkill: "draw-two", valid: false, count: 0, cards: [] }
+    ];
+    state.screen = "decks";
+    runtime.render();
+    await settle();
+    const listFile = path.join(OUTPUT, `deck-list-${viewport.width}x${viewport.height}.png`);
+    fs.writeFileSync(listFile, canvas.toBuffer("image/png"));
+    console.log(`deck-list-ok ${listFile}`);
+    process.exit(0);
+  }
+
   // 造一副「看起来像玩家真实牌组」的草稿：低费多、高费少
   state.showSign = false;
   state.screen = "deckEditor";
   state.deckSlot = 1;
-  state.deckDraft = { slot: 1, name: "帅哥的卡组", generalSkill: "draw-two", cards: [] };
+  state.deckDraft = buildDeck("帅哥的卡组", "draw-two", 20);
+  state.deckDraft.slot = 1;
   state.deckFilters = { sets: [], rarities: [], costs: [] };
   state.deckSearch = "";
   state.deckSort = "cost";
+  state.deckScroll = { left: 0, right: 0 };
   state.scrollY = 0;
-  const deckCards = cards.slice().sort((a, b) => Number(a.cost) - Number(b.cost));
-  for (const card of deckCards) {
-    if (runtime.deckQuantity(state.deckDraft) >= 20) break;
-    const own = inventory.find(item => item.cardId === card.id);
-    if (!own || own.normalCount <= 0) continue;
-    const limit = runtime.deckLimit(card);
-    const take = Math.min(limit, own.normalCount, 20 - runtime.deckQuantity(state.deckDraft));
-    if (take <= 0) continue;
-    state.deckDraft.cards.push({ cardId: card.id, normalCount: take, shinyCount: 0 });
-  }
   runtime.render();
   await settle();
 
