@@ -166,6 +166,7 @@ node tools/test_workshop_rules.js
 node tools/test_workshop_ui.js
 node tools/test_deck_rules.js
 node tools/test_deck_editor_ui.js
+node tools/test_deck_editor_consistency.js
 node tools/test_deck_save.js
 node tools/test_legacy_account.js
 node tools/test_ai_behavior.js
@@ -364,3 +365,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/capture_devtools_windo
 交接说明与待办见 `docs/HANDOFF.md`；产品决策记录见 `docs/DECISION_LOG.md`。
 
 图鉴筛选与卡牌工坊的合并方案与验收记录见 `docs/CARD_COLLECTION_FILTER_SEARCH_PLAN.md`、`docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md`。
+
+牌组编辑器的改版说明见 [`docs/DECK_EDITOR_REDESIGN.md`](docs/DECK_EDITOR_REDESIGN.md)。
