@@ -48,6 +48,11 @@ Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-1
 - `star-remnant/s007.png` 的右下残笔无法用亮度规则判定（边缘 std 87.2 是全库最高，但正常满幅画面 std 也在 77–86），只能靠重绘。
 - 包体影响实测：四张裁边母版重建后运行时 JPG 合计 `+18,769 B`（基础包 +16.7KB、星骸包 +2.1KB），可忽略。
 
+## 二·补2 两项已结案（2026-11-19 用户拍板）
+
+- **Q3 闪卡上限 → 不设上限**。代码保持现状（`shinyEnabled = normal>=3`、服务端只校验 3 张普通卡、无 `shinyLimit`）；`CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.3 那三条已按「无上限」改写为已确认。
+- **素材白边 → 不要管**。`design/generated/edge-trimmed/` 的四张裁边候选保留备查，不替换原始母版、不重建分包。
+
 ## 三、常用命令
 
 要发版时不用记顺序，直接走 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)（7 步，45 条可复制命令）。

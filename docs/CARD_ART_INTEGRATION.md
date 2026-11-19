@@ -144,6 +144,8 @@ node tools/smoke_card_art_loading.js
 
 ### 已生成裁边候选（2026-11-19，未替换原始母版）
 
+> **用户决定（2026-11-19）：不要管，保持现状。** 候选图留在 `design/generated/edge-trimmed/` 备查，不替换原始母版、不重建分包。下面的采纳步骤仅在用户改口时才执行。
+
 `py tools/trim_card_art_edges.py --ids c008,r008,s008,c025 --sheet` 对这些母版做了非 AI 的
 「逐行/逐列判定纯白带 → 裁掉 → 缩放回 1024×1216」，结果写到：
 

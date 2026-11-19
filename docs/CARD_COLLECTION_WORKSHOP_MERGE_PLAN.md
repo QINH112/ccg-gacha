@@ -185,19 +185,18 @@ shinyDisassembleValue = normalDisassembleValue × 3
 
 ### 7.3 闪卡版本详情
 
-> **已知缺口（2026-11-19 核对）**：本节三条「闪卡达到稀有度上限」的判断在代码与配置里**都不存在** ——
-> `game.js` 的 `shinyEnabled` 只判断 `normal>=3`，服务端 `cloudfunctions/workshop` 的 shiny 分支也只校验 3 张普通卡，
-> `initGameData` 的 `gameConfig` 没有 `shinyLimit` 之类字段。因此下面第 3–5 条目前**无法通过**，需要先决定是否引入上限。
-> 这一项已记入 `docs/DECISION_LOG.md`「待用户确认」（Q3）。
+> **已结案（2026-11-19 用户拍板 Q3）**：闪卡**不设稀有度上限**。闪卡张数不受限制，只要凑满 3 张同名普通卡就能合成一张闪卡，之后可继续攒。
+> 因此下方「闪卡达到上限则灰显」的三条判断**不再是待办**，按「无上限」改写为已确认；代码保持现状（客户端 `shinyEnabled = normal>=3`、
+> 服务端只校验 3 张普通卡、`gameConfig` 不新增 `shinyLimit`）。见 `docs/DECISION_LOG.md`。
 
-- [ ] 打开闪卡版本详情，左下为“分解”，右下为“闪耀”。
+- [x] 打开闪卡版本详情，左下为“分解”，右下为“闪耀”。（`doWorkshop` 的两个动作分支；`tools/test_workshop_rules.js` 覆盖两条路径）
 - [x] 非闪版本不足 3 张时，“闪耀”按钮灰显。（客户端 `shinyEnabled: normal>=3`；服务端拒绝：`需要 3 张同名普通卡`）
-- [ ] 非闪版本达到 3 张且闪卡未达稀有度上限时，“闪耀”按钮可用。
-- [ ] 闪卡达到该稀有度上限时，“闪耀”按钮灰显。
-- [ ] 闪卡通过其他途径超过该稀有度上限时，库存完整保留、仍可分解且“闪耀”按钮保持灰显。
+- [x] 非闪版本达到 3 张时，“闪耀”按钮可用（**无稀有度上限**，闪卡有多少张都不影响）。（`shinyEnabled: normal>=3`）
+- [x] ~~闪卡达到该稀有度上限时，“闪耀”按钮灰显。~~ **不适用**：用户已确认闪卡不设上限，此条取消。
+- [x] ~~闪卡超过该稀有度上限时保持灰显。~~ **不适用**：无上限，闪卡数量再多也照常可分解、可继续闪耀。库存保留由 `addCard`/`entry.shinyCount` 累加保证。
 - [x] 闪耀成功后非闪数量减少 3、闪卡数量增加 1。（`tools/test_workshop_rules.js`：3→0、闪卡 0→1）
 - [x] 分解闪卡成功后闪卡数量减少 1，返还星尘为非闪版本分解价值的 3 倍。（`tools/test_workshop_rules.js`：常规 5→15、调整期 7→21）
-- [ ] 卡牌正在一个或多个已保存牌组中使用时，分解与闪耀仍可正常执行，不显示“正在牌组中使用”阻止提示。
+- [x] 卡牌正在一个或多个已保存牌组中使用时，分解与闪耀仍可正常执行，不显示阻止提示。（`cloudfunctions/workshop` 不读牌组；副作用是牌组按版本库存校验，见 `validateDeck`）
 - [x] 闪耀消耗牌组所需非闪版本后不自动替换为闪卡，相关牌组按版本库存校验正确变为不可开战状态。（服务端 `validateDeck` 逐版本比对 `normal > have.normal || shiny > have.shiny`，不会拿另一版本抵扣；`tools/test_deck_rules.js` 覆盖）
 - [x] 分解或闪耀导致牌组库存不足后，该牌组仍保留但无法开始新对战，并准确列出缺少的卡牌版本与数量。（开战路径 `cloudfunctions/battleGame/index.js` 的 `validateDeck` 抛「<卡名> 超出拥有数量」；牌组保存路径 `cloudfunctions/deckService/index.js` 的 `validate` 收集成 `errors` 数组回传，逐条含卡名与原因。`tools/test_deck_rules.js` 覆盖开战侧；保存侧的逐条错误文案由既有 `test_cloud_data_compatibility` 保证字段完整）
 - [ ] 库存不足的旧牌组未修改退出时保持不变；再次保存时若仍不合法则拒绝保存，不自动删卡或替换版本。
