@@ -214,6 +214,18 @@ function openDetail(cardId, shiny) {
   openDetail("r001", true);
   assert(!hits("cardAction").some(entry => entry.data && entry.data.action === "shiny"), "普通卡不足 3 张时「闪耀」应置灰");
 
+  // 详情页「分解」按钮显示的数值必须与云端实际返还一致（调整期内按合成价）
+  state.balanceNotices = { items: [] };
+  assert(runtime.disassembleValue({ id: "c001", rarity: "common" }, false) === 5, "无公告时显示基础分解价 5");
+  state.balanceNotices = { items: [{ id: "n1", enabled: true, publishedAt: Date.now() - 3600000, changes: [{ cardId: "c001" }] }] };
+  assert(runtime.disassembleValue({ id: "c001", rarity: "common" }, false) === 40, "公告生效期内显示合成价 40");
+  assert(runtime.disassembleValue({ id: "c001", rarity: "common" }, true) === 120, "闪卡是 40 的三倍");
+  openDetail("c001", false);
+  await settle();
+  assert(renderedText.some(text => text.includes("40星尘")), "详情页分解按钮应显示 40 星尘");
+  assert(!renderedText.some(text => text.includes("5星尘")), "不应再显示旧的 5 星尘");
+  state.balanceNotices = { items: [] };
+
   console.log("workshop-ui-test-ok", cloudCalls.join(","));
 })().catch(error => {
   console.error(error);

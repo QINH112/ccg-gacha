@@ -305,6 +305,8 @@ shinyDisassembleValue = normalDisassembleValue × 3
 - 数据侧：`cloudfunctions/initGameData/index.js` 的种子公告现在显式写入 `originalCraftCost`（c001/c002 = 40，r009 = 100）。**种子公告只在 `initGameData` 运行时写入**，所以必须重跑一次（参数 `{}`）才会带上这个字段；同理 `workshop` 云函数必须重新上传，否则线上仍是旧逻辑（分解后只加 5 星尘）。
 - 回归：`node tools/test_workshop_rules.js` 覆盖「公告有 originalCraftCost」「公告缺 originalCraftCost（按合成价）」「窗口过期（按分解价）」「公告更新后取最新」四种情况。
 
+- 2026-11-19 追加：详情页「分解」按钮原来直接显示 `config.disassemble[rarity]`（普通 5），与服务端调整期返还（40）不一致，属于展示 bug。现改为 `game.js` 的 `disassembleValue(card, shiny)`：先查生效中的公告（`activeBalanceAdjustment`），命中则取 `originalCraftCost` → 合成价，未命中才用分解价，闪卡 ×3；`tools/test_workshop_ui.js` 加了「无公告 5 / 有公告 40 / 闪卡 120 / 详情页文案」四条断言。
+
 ## 文档与实现的不一致（待用户确认）
 
 1. **分解是否需要确认弹窗**：本计划 `:268-283` 记「分解无确认弹窗」，但 `game.js` 的 `doWorkshop()` 对 `disassemble` 仍走 `wx.showModal` 二次确认。以哪个为准待定；未擅自改行为。
