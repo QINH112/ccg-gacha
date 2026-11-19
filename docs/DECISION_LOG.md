@@ -20,6 +20,15 @@
 | 11 | 遮罩仍在真机复现 | **先加控制台追踪定位**（`[overlay] <name> screen=<screen>`），不靠猜 | `game.js` `traceOverlay()`、`docs/UI_OVERLAY_RULES.md` §3.1 |
 
 
+## 2026-11-19 用户确认（抽卡与结果页）
+
+| # | 决策 | 结论 | 落地 |
+| --- | --- | --- | --- |
+| Q5 | 抽卡是否可能出闪卡 | **每张卡独立 3% 判定**（`gameConfig.shinyRate=3`）。40 抽保底与十连保底的那张也按 3% 判定，保底只保证稀有度 | `cloudfunctions/drawCards/index.js` 的 `addCard(player,card,shiny)`；闪卡计入 `shinyCount` 与 `collectionHistory.shinyIds`，并累加 `metrics.shinyGained` |
+| Q6 | 单抽结果页的矩形外框 | **去掉**，只显示卡面本身（与战斗卡同因：`miniCard` 没传 `transparentOuter`） | `game.js` 的 `renderResults()` |
+| Q7 | 五连 / 十连的符号缩略图 | **改成 3 列网格完整卡面**（每张约 104–110px 宽）。原因是 `drawCardTemplate` 在 `w<82` 时走 compact 分支只画符号，五列并排每张仅 ~60px | `game.js` 新增 `resultsLayout(count)`，导出给 `tools/test_draw_results_layout.js` 断言卡宽 ≥ 82 |
+| Q8 | 闪卡的视觉区分 | 用现成的**彩虹卡框 + 「闪」角标**，不加任何闪光/蒙层动画（沿用 D24 的教训） | `drawCardTemplate` 已有 `card.shiny` 分支；结果页补 `闪` 角标 |
+
 ## 待用户确认
 
 （当前无待确认项。2026-11-19 用户已就下列两项拍板，见下。）

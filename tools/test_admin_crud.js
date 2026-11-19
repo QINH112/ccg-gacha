@@ -8,7 +8,7 @@ const assert = require("assert");
 const Module = require("module");
 
 const CARDS = [
-  { id: "c001", name: "见习卫兵", rarity: "common", cost: 1, type: "minion", attack: 1, health: 2, keywords: [], effects: [], set: "base", element: "✦" },
+  { id: "c001", name: "见习卫兵", rarity: "common", cost: 1, type: "minion", attack: 1, health: 2, keywords: [], effects: [], set: "base", element: "✦", artPath: "subpackages/card-art-base/images/c001.jpg" },
   { id: "l004", name: "万籁归寂", rarity: "legendary", cost: 8, type: "spell", attack: null, health: null, keywords: [], effects: [{ trigger: "cast", action: "silence", target: "all-minions" }], set: "base", element: "✦" }
 ];
 

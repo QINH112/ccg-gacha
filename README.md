@@ -173,6 +173,7 @@ node tools/smoke_collection_navigation.js
 node tools/test_card_data_integrity.js
 node tools/test_shared_constants.js
 node tools/test_draw_pity.js
+node tools/test_draw_results_layout.js
 node tools/test_signin_cycle.js
 node tools/test_cloud_security.js
 node tools/test_admin_crud.js
@@ -180,7 +181,7 @@ node tools/validate_release_readiness.js
 node tools/validate_release_readiness.js --release   # 发布前用这一档
 ```
 
-`smoke_home_capsule.js` 把微信胶囊底边设成极端值 200，断言主界面所有可点入口都在它下方；`test_balance_notice_accuracy.js` 逐字段比对平衡公告的 `after` 与权威卡牌数据、并校验收录的 `artPath` 与卡牌一致且图片存在，防止「改了卡忘了改公告」；`test_balance_notice_art.js` 断言公告详情页真的把每张卡的立绘画在卡片右侧（宽度 ≤ 内容宽度 28%、高度铺满内边距、不注册命中区、旧公告缺 `artPath` 时回落卡牌立绘）；`test_card_data_integrity.js` 审计全部卡牌的关键词/规则文本/效果词汇是否自洽；`test_shared_constants.js` 钉住跨文件常量（同名上限、牌组 20 张、手牌/战场/法力/英雄血量、闪耀消耗 3、非闪合成上限 9）——这些数值同时写在 `initGameData` 的 settings、`battleGame`/`deckService`/`workshop` 云函数和 `game.js` 里，改一处漏一处会立刻失败；`test_draw_pity.js` 用可控随机数验证传说保底（第 40 抽强制）、十连保底与抽卡失败分支；`test_signin_cycle.js` 验证签到 7 天循环的发放顺序、每日一次限制、循环结束后转每日奖励、卡牌奖励只从已发布卡包抽；`validate_cloudfunctions.py` 校验每个云函数都有 index.js/package.json（含 wx-server-sdk）、都导出 exports.main，且客户端调用的函数名都真实存在；`test_cloud_security.js` 校验 adminGame 的 `INIT_SECRET` 失败关闭、drawHistory 只读自己的流水、其余云函数不信任客户端传入的身份；`test_admin_crud.js` 锁定管理端写入契约（邮件默认值/状态机、任务类型白名单与 `activationVersion`、公告不可覆盖与成本回填、发奖数值、改卡夹紧）。发布审计有两档：默认开发档要求 `DEVELOPMENT_RESET_ENABLED = true`，`--release` 档要求 `false`（防止带重置按钮上线）。
+`smoke_home_capsule.js` 把微信胶囊底边设成极端值 200，断言主界面所有可点入口都在它下方；`test_balance_notice_accuracy.js` 逐字段比对平衡公告的 `after` 与权威卡牌数据、并校验收录的 `artPath` 与卡牌一致且图片存在，防止「改了卡忘了改公告」；`test_balance_notice_art.js` 断言公告详情页真的把每张卡的立绘画在卡片右侧（宽度 ≤ 内容宽度 28%、高度铺满内边距、不注册命中区、旧公告缺 `artPath` 时回落卡牌立绘）；`test_card_data_integrity.js` 审计全部卡牌的关键词/规则文本/效果词汇是否自洽；`test_shared_constants.js` 钉住跨文件常量（同名上限、牌组 20 张、手牌/战场/法力/英雄血量、闪耀消耗 3、非闪合成上限 9）——这些数值同时写在 `initGameData` 的 settings、`battleGame`/`deckService`/`workshop` 云函数和 `game.js` 里，改一处漏一处会立刻失败；`test_draw_pity.js` 用可控随机数验证传说保底（第 40 抽强制）、十连保底、闪卡 3% 判定与抽卡失败分支；`test_draw_results_layout.js` 钉住抽卡结果页布局（单抽/五连/十连都用完整卡面，卡宽 ≥ 82，因为 `drawCardTemplate` 在 `w<82` 时会退化成符号缩略图）；`test_signin_cycle.js` 验证签到 7 天循环的发放顺序、每日一次限制、循环结束后转每日奖励、卡牌奖励只从已发布卡包抽；`validate_cloudfunctions.py` 校验每个云函数都有 index.js/package.json（含 wx-server-sdk）、都导出 exports.main，且客户端调用的函数名都真实存在；`test_cloud_security.js` 校验 adminGame 的 `INIT_SECRET` 失败关闭、drawHistory 只读自己的流水、其余云函数不信任客户端传入的身份；`test_admin_crud.js` 锁定管理端写入契约（邮件默认值/状态机、任务类型白名单与 `activationVersion`、公告不可覆盖与成本回填、发奖数值、改卡夹紧）。发布审计有两档：默认开发档要求 `DEVELOPMENT_RESET_ENABLED = true`，`--release` 档要求 `false`（防止带重置按钮上线）。
 
 不要使用 `design/card-template` 中的旧候选卡框作为线上素材；该目录仅保留早期研究过程，运行时使用的是依据用户手绘结构生成的原创卡框。
 

@@ -48,7 +48,7 @@ function notice(id,publishedAt,enabled=true){return{id,title:id,summary:"公告"
   assert.deepEqual([cleanedSpell.changes[0].before.attack,cleanedSpell.changes[0].before.health],[null,null]);
   assert.throws(()=>admin.cleanBalanceChanges([]),/至少需要一张卡牌/);
 
-  records("cards").set("c001",{id:"c001",rarity:"common"});
+  records("cards").set("c001",{id:"c001",rarity:"common",artPath:"subpackages/card-art-base/images/c001.jpg"});
   records("gameConfig").set("main",{craft:{common:40}});
   const published=await adminModule.main({action:"upsertBalanceNotice",secret:"balance-test-secret",data:{id:"immutable",title:"不可覆盖公告",publishedAt:250,changes:notice("x",1).changes}});
   assert.equal(published.notice.id,"immutable");

@@ -212,6 +212,29 @@ async function settle() {
   const output = path.join(OUTPUT, `battle-canvas-${viewport.width}x${viewport.height}.png`);
   fs.writeFileSync(output, canvas.toBuffer("image/png"));
   console.log(`battle-canvas-ok ${output}`);
+
+  // 抽卡结果页样张：单抽 / 十连各一张
+  const cards = gameDataResult().cards;
+  const resultCard = (value, shiny) => {
+    const card = value && typeof value === "object" ? value : cards.find(item => item.id === value) || { id: String(value), name: String(value), rarity: "common", set: "base" };
+    return { ...card, shiny: Boolean(shiny) };
+  };
+  const sample = cards.slice(0, 10);
+  const shots = [
+    { label: "单抽", ids: [[sample[0], false]] },
+    { label: "十连", ids: sample.map((card, index) => [card, [1, 4, 7].includes(index)]) }
+  ];
+  for (const shot of shots) {
+    runtime.state.screen = "home";
+    runtime.state.showResults = true;
+    runtime.state.resultLabel = shot.label;
+    runtime.state.results = shot.ids.map(([id, shiny]) => resultCard(id, shiny));
+    runtime.render();
+    await settle();
+    const file = path.join(OUTPUT, `draw-results-${shot.label}-${viewport.width}x${viewport.height}.png`);
+    fs.writeFileSync(file, canvas.toBuffer("image/png"));
+    console.log(`draw-results-ok ${file}`);
+  }
   process.exit(0);
 })().catch(error => {
   console.error("render-battle-canvas-failed", error);

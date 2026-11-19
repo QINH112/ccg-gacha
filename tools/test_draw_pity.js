@@ -19,6 +19,7 @@ const CONFIG = {
   disassemble: { common: 5, rare: 20, epic: 100, legendary: 400 },
   craft: { common: 40, rare: 100, epic: 400, legendary: 1600 },
   shinyCost: 3,
+  shinyRate: 0,
   battle: { deckSize: 20 }
 };
 
@@ -142,6 +143,29 @@ async function run(event, playerState, queue) {
     assert.equal(last.tenGuarantee, true, "第 10 抽应打 tenGuarantee 标记");
     assert.equal(last.card.rarity, "epic", "tenDrawGuarantee.epic=95 时 0.5 应给史诗");
     assert.ok(result.results.slice(0, 9).every(item => item.card.rarity === "common"));
+  }
+
+  // 4.5) 闪卡：每张独立 3% 判定（shinyRate=3）
+  {
+    CONFIG.shinyRate = 3;
+    const result = await run({ count: 1 }, player({ ticket: 100 }), [0.5, 0.5, 0.01]);
+    assert.equal(result.results[0].shiny, true, "0.01*100=1 < 3 应判为闪卡");
+    const entry = store.player.inventory.find(item => item.cardId === result.results[0].card.id);
+    assert.equal(entry.shinyCount, 1, "闪卡应计入 shinyCount");
+    assert.equal(entry.normalCount, 0, "闪卡不应计入 normalCount");
+    assert.ok(store.player.collectionHistory.shinyIds.includes(result.results[0].card.id), "闪卡应记入 shinyIds");
+    CONFIG.shinyRate = 0;
+  }
+
+  // 4.6) 闪卡：随机数 0.5（50 ≥ 3）不给闪卡
+  {
+    CONFIG.shinyRate = 3;
+    const result = await run({ count: 1 }, player({ ticket: 100 }), [0.5, 0.5, 0.5]);
+    assert.equal(result.results[0].shiny, false, "0.5*100=50 ≥ 3 不应给闪卡");
+    const entry = store.player.inventory.find(item => item.cardId === result.results[0].card.id);
+    assert.equal(entry.normalCount, 1);
+    assert.equal(entry.shinyCount, 0);
+    CONFIG.shinyRate = 0;
   }
 
   // 5) 十连保底命中传说分支（随机数 0.99 → 99 >= 95）

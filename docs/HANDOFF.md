@@ -20,7 +20,8 @@
 1. **真机验收：已完成 29/29**。2026-11-19 用户在 vivo x200s 上逐条点过（`py tools/p7_evidence_status.py` → `devices=29 passed=29 pending=0`），包括 B8「手牌与场上卡外围无底板边框」。之后任何客户端改动都要挑相关条目重测。
 2. **Q4：不合法牌组要不要硬拒绝保存？** 文档 §7.4 写「不合法则拒绝保存」，实际实现是「允许保存但标 `valid:false`、不可开战」，客户端提示「已保存未完成牌组」。这是可用性选择，需要你拍板。见 `docs/DECISION_LOG.md`。
 3. **卡牌平衡 7 条**：`docs/CARD_DESIGN_PLAN.md` §5 仍留 7 条 `[ ]`，都是「每张卡的人工审查」「同费用卡优劣关系」「斩杀上限审查」这类需要人判断的项，代码只能提供数据。
-4. **发版前**：把 `game.js:32` 的 `DEVELOPMENT_RESET_ENABLED` 改 false，再跑 `node tools/validate_release_readiness.js --release`（当前会提示这一条）。步骤见 `docs/RELEASE_CHECKLIST.md`。
+4. **图鉴还显示 72 张≠代码 74 张**：`cloudfunctions/initGameData/index.js` 里已有 74 张（`e009` 沉默之墙、`l004` 万籁归寂），但云端 `cards` 集合还是旧的 72 条。在微信开发者工具里对 `initGameData` 做一次「云端测试」（参数 `{}`，默认安全模式不会动玩家存档），它会同步全部 74 张卡；随后重新编译，图鉴即显示 `已收集 X / 74 种`。
+5. **发版前**：把 `game.js:32` 的 `DEVELOPMENT_RESET_ENABLED` 改 false，再跑 `node tools/validate_release_readiness.js --release`（当前会提示这一条）。步骤见 `docs/RELEASE_CHECKLIST.md`。
 
 已结案、不用再管的：Q1（分解不二次确认）、Q2（非闪上限 9 张）、Q3（闪卡不设上限）、素材白边（不处理）、首次提交（已完成）、云函数上传与预览（用户已解决）。
 

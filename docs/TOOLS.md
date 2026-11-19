@@ -39,6 +39,7 @@
 - `tools/test_deck_rules.js` —— 牌组合法性校验回归（服务端 validateDeck）：
 - `tools/test_deck_save.js`
 - `tools/test_draw_pity.js` —— 抽卡概率与保底逻辑审计：直接跑 cloudfunctions/drawCards/index.js 的 exports.main，
+- `tools/test_draw_results_layout.js`
 - `tools/test_game_services.js`
 - `tools/test_legacy_account.js`
 - `tools/test_shared_constants.js` —— 跨模块共享规则的「单一事实」审计：

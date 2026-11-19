@@ -184,7 +184,7 @@ const pools = [
 ];
 const settings = {
   rarityRates:{common:70,rare:20,epic:7.5,legendary:2.5},
-  tenDrawGuarantee:{epic:95,legendary:5},legendaryPity:40,initialTicket:100,initialCoin:1000,ticketCoinPrice:100,maxShopQuantity:99,
+  tenDrawGuarantee:{epic:95,legendary:5},legendaryPity:40,shinyRate:3,initialTicket:100,initialCoin:1000,ticketCoinPrice:100,maxShopQuantity:99,
   disassemble:{common:5,rare:20,epic:100,legendary:400},
   craft:{common:40,rare:100,epic:400,legendary:1600},shinyCost:3,
   signIn:{timezone:"Asia/Shanghai",firstCycle:[{type:"ticket",amount:50},{type:"card",rarity:"epic",amount:1},{type:"ticket",amount:10},{type:"ticket",amount:20},{type:"ticket",amount:20},{type:"card",rarity:"legendary",amount:1},{type:"ticket",amount:50}],dailyAfterCycle:{type:"ticket",amount:5}},
