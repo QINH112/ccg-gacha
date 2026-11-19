@@ -35,6 +35,9 @@ dateKey status:"pending"  deleted:false  createdAt  updatedAt
 - 每天额度按 `where({userId,dateKey}).count()` 判断，超限抛「今天已经提交过反馈了，明天再来吧」。
 - 删除是软删（`deleted:true`），玩家侧 `mine` 只查自己的未删记录。
 - 截图存 `cloud://` 文件 ID，上传路径 `feedback/<时间戳>-<随机>.jpg`，客户端压缩到宽 ≤1080、quality 0.82。
+- 截图**只能从相册选**（`wx.chooseImage({ sourceType: ["album"] })`），不弹相机；超过 **10MB** 直接提示换一张（`wx.getFileSystemManager().getFileInfo` 读大小）。
+- 图片尺寸用 `wx.createImage()` 读（小游戏基础库里没有 `wx.getImageInfo`，用它会报 `wx.getImageInfo is not a function`）。
+- 字数不足时：计数器显示 `2/200（至少 5 字）`，提交按钮置灰并显示「还差 N 个字」。
 
 ## 云函数
 

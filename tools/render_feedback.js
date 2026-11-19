@@ -99,12 +99,13 @@ const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   await wait(600);
 
   const mineMode = process.argv[3] === "mine";
+  const shortMode = process.argv[3] === "short";
   state.showSign = false;
   state.screen = "feedback";
   state.feedbackTab = mineMode ? "mine" : "write";
   state.feedbackSubmittedToday = false;
   state.feedbackLoaded = true;
-  state.feedbackDraft = { type: "bug", content: "战斗里点「结束回合」偶尔没反应，重进对战就恢复正常了。", contact: "qq 123456", imageFileID: "", imagePath: "" };
+  state.feedbackDraft = { type: "bug", content: shortMode ? "测试" : "战斗里点「结束回合」偶尔没反应，重进对战就恢复正常了。", contact: shortMode ? "111" : "qq 123456", imageFileID: "", imagePath: "" };
   state.feedbackMine = mineMode ? [
     { id: "f1", type: "bug", content: "战斗里点「结束回合」偶尔没反应，重进对战就恢复正常了。", hasImage: true, dateKey: "2026-11-20", createdAt: Date.now() },
     { id: "f2", type: "balance", content: "星尘学徒加强了之后，1 费铺场太快，建议把生命回调到 2。", hasImage: false, dateKey: "2026-11-19", createdAt: Date.now() - 86400000 },
@@ -114,7 +115,7 @@ const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
   runtime.render();
   await settle();
 
-  const name = mineMode ? "feedback-mine" : "feedback";
+  const name = mineMode ? "feedback-mine" : shortMode ? "feedback-short" : "feedback";
   const file = path.join(OUTPUT, `${name}-${viewport.width}x${viewport.height}.png`);
   fs.writeFileSync(file, canvas.toBuffer("image/png"));
   console.log(`feedback-render-ok ${file}`);

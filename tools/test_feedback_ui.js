@@ -41,6 +41,7 @@ const noop = () => {};
 const handlers = {};
 const renderedText = [];
 const toastCalls = [];
+const chooseCalls = [];
 const modalCalls = [];
 const cloudCalls = [];
 let todaysFeedback = null;
@@ -97,7 +98,8 @@ global.wx = {
   createOffscreenCanvas: ({ width, height }) => ({ width, height, getContext: () => context, createImage: () => ({ set src(value) { if (this.onload) this.onload(); } }) }),
   canvasToTempFilePath: options => { if (options && options.success) options.success({ tempFilePath: "tmp-compressed.jpg" }); },
   getImageInfo: options => { if (options && options.success) options.success({ width: 1600, height: 1200 }); },
-  chooseImage: options => { if (options && options.success) options.success({ tempFilePaths: ["tmp-picked.png"] }); },
+  chooseImage: options => { chooseCalls.push(options || {}); if (options && options.success) options.success({ tempFilePaths: ["tmp-picked.png"] }); },
+  getFileSystemManager: () => ({ getFileInfo: options => { if (options && options.success) options.success({ size: 2 * 1024 * 1024 }); } }),
   createImage: () => {
     const image = {};
     Object.defineProperty(image, "src", { set() { if (typeof image.onload === "function") image.onload(); } });
@@ -180,6 +182,9 @@ const tapId = async id => {
   state.feedbackDraft.content = "卡";
   runtime.render();
   assert(hitOf("feedbackSubmit").length === 0, "内容不足 5 字时不应能提交");
+  const shortText = renderedText.join("|");
+  assert(shortText.includes("至少 5 字"), "字数不足时计数器应写明「至少 5 字」");
+  assert(shortText.includes("还差 4 个字"), `提交按钮应提示还差几个字，实际 UI 文本：${shortText.slice(0, 200)}`);
 
   // 4) 点内容框 -> 弹窗输入 -> 回填
   global.__modalText = "战斗中点结束回合没有反应，麻烦看一下";
@@ -197,6 +202,9 @@ const tapId = async id => {
   // 6) 截图：选择 -> 压缩 -> 上传 -> 设置 fileID
   await tapId("feedbackImagePick");
   await settle();
+  await settle();
+  assert(chooseCalls.length === 1, "应打开一次相册选择");
+  assert(JSON.stringify(chooseCalls[0].sourceType) === JSON.stringify(["album"]), `截图只能从相册选，实际 ${JSON.stringify(chooseCalls[0].sourceType)}`);
   assert(state.feedbackDraft.imageFileID === "cloud://test/feedback/shot.jpg", `截图应上传成功，实际「${state.feedbackDraft.imageFileID}」`);
   runtime.render();
   assert(hitOf("feedbackImageClear").length === 1, "已选截图后应出现移除按钮");

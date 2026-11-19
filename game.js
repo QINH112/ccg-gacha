@@ -656,7 +656,7 @@ setInterval(()=>{if(state.screen!=="battle"||!state.battle||state.loading)return
 
 
 const FEEDBACK_TYPES=[["bug","BUG/故障"],["suggestion","建议"],["experience","体验问题"],["balance","平衡/数值"],["other","其他"]];
-const FEEDBACK_MIN=5,FEEDBACK_MAX=200;
+const FEEDBACK_IMAGE_MAX_BYTES=10*1024*1024,FEEDBACK_MIN=5,FEEDBACK_MAX=200;
 const feedbackThumbs={};
 function feedbackTypeLabel(type){const found=FEEDBACK_TYPES.find(item=>item[0]===type);return found?found[1]:"其他";}
 function feedbackDraftText(){return String(state.feedbackDraft.content||"");}
@@ -666,9 +666,80 @@ function refreshFeedback(){return api.loadMyFeedback().then(result=>{applyFeedba
 function openFeedback(){state.feedbackTab="write";state.feedbackDraft={type:"bug",content:"",contact:"",imageFileID:"",imagePath:""};state.feedbackMine=[];state.feedbackLoaded=false;switchScreen("feedback");refreshFeedback();}
 function editFeedbackField(field,title,placeholder,maxLength){wx.showModal({title,editable:true,placeholderText:placeholder,content:state.feedbackDraft[field]||"",success:result=>{if(!result.confirm)return;state.feedbackDraft[field]=String(result.content||"").slice(0,maxLength);render();}});}
 function feedbackThumb(path){if(!path)return null;if(feedbackThumbs[path])return feedbackThumbs[path];const image=wx.createImage();image.onload=()=>{feedbackThumbs[path]=image;render();};image.onerror=()=>{};image.src=path;return null;}
-function compressFeedbackImage(sourcePath){return new Promise(resolve=>{wx.getImageInfo({src:sourcePath,success:info=>{const maxWidth=1080,scale=Math.min(1,maxWidth/(info.width||maxWidth)),width=Math.max(1,Math.round((info.width||maxWidth)*scale)),height=Math.max(1,Math.round((info.height||maxWidth)*scale));try{const offscreen=wx.createOffscreenCanvas({type:"2d",width,height});const context=offscreen.getContext("2d");const image=offscreen.createImage();image.onload=()=>{try{context.drawImage(image,0,0,width,height);wx.canvasToTempFilePath({canvas:offscreen,x:0,y:0,width,height,destWidth:width,destHeight:height,fileType:"jpg",quality:.82,success:result=>resolve(result.tempFilePath||sourcePath),fail:()=>resolve(sourcePath)});}catch(error){resolve(sourcePath);}};image.onerror=()=>resolve(sourcePath);image.src=sourcePath;}catch(error){resolve(sourcePath);}},fail:()=>resolve(sourcePath)});});}
+function feedbackImageSize(sourcePath){
+  return new Promise(resolve=>{
+    try{
+      const image=wx.createImage();
+      image.onload=()=>resolve({width:image.width||image.naturalWidth||0,height:image.height||image.naturalHeight||0});
+      image.onerror=()=>resolve(null);
+      image.src=sourcePath;
+    }catch(error){resolve(null);}
+  });
+}
+function feedbackFileSize(filePath){
+  return new Promise(resolve=>{
+    try{
+      const fs=wx.getFileSystemManager&&wx.getFileSystemManager();
+      if(!fs||typeof fs.getFileInfo!=="function"){resolve(0);return;}
+      fs.getFileInfo({filePath,success:info=>resolve(Number(info&&info.size)||0),fail:()=>resolve(0)});
+    }catch(error){resolve(0);}
+  });
+}
+function compressFeedbackImage(sourcePath){
+  return new Promise(resolve=>{
+    feedbackImageSize(sourcePath).then(info=>{
+      const sourceWidth=info&&info.width?info.width:0,sourceHeight=info&&info.height?info.height:0;
+      if(!sourceWidth||!sourceHeight){resolve(sourcePath);return;}
+      const maxWidth=1080,scale=Math.min(1,maxWidth/sourceWidth),width=Math.max(1,Math.round(sourceWidth*scale)),height=Math.max(1,Math.round(sourceHeight*scale));
+      try{
+        const offscreen=wx.createOffscreenCanvas({type:"2d",width,height});
+        const context=offscreen.getContext("2d");
+        const image=offscreen.createImage();
+        image.onload=()=>{
+          try{
+            context.drawImage(image,0,0,width,height);
+            wx.canvasToTempFilePath({canvas:offscreen,x:0,y:0,width,height,destWidth:width,destHeight:height,fileType:"jpg",quality:.82,success:result=>resolve(result.tempFilePath||sourcePath),fail:()=>resolve(sourcePath)});
+          }catch(error){resolve(sourcePath);}
+        };
+        image.onerror=()=>resolve(sourcePath);
+        image.src=sourcePath;
+      }catch(error){resolve(sourcePath);}
+    });
+  });
+}
 function uploadFeedbackImage(localPath){return new Promise((resolve,reject)=>{if(!wx.cloud||typeof wx.cloud.uploadFile!=="function"){reject(new Error("当前基础库不支持上传截图"));return;}const cloudPath=`feedback/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;wx.cloud.uploadFile({cloudPath,filePath:localPath,success:result=>result&&result.fileID?resolve(result.fileID):reject(new Error("截图上传失败")),fail:error=>reject(new Error((error&&(error.errMsg||error.message))||"截图上传失败"))});});}
-function chooseFeedbackImage(){wx.chooseImage({count:1,sizeType:["compressed"],success:result=>{const path=result&&result.tempFilePaths&&result.tempFilePaths[0];if(!path)return;state.feedbackDraft.imagePath=path;state.feedbackDraft.imageFileID="";state.feedbackUploading=true;render();compressFeedbackImage(path).then(uploadFeedbackImage).then(fileID=>{state.feedbackDraft.imageFileID=fileID;state.feedbackUploading=false;render();}).catch(error=>{state.feedbackUploading=false;state.feedbackDraft.imagePath="";state.feedbackDraft.imageFileID="";notifyError(error&&error.message||"截图上传失败");render();});}});}
+function chooseFeedbackImage(){
+  wx.chooseImage({
+    count:1,
+    sizeType:["compressed"],
+    sourceType:["album"],
+    success:result=>{
+      const path=result&&result.tempFilePaths&&result.tempFilePaths[0];
+      if(!path)return;
+      feedbackFileSize(path).then(size=>{
+        if(size>FEEDBACK_IMAGE_MAX_BYTES){
+          notifyError(`图片太大了（${(size/1048576).toFixed(1)}MB），换一张 10MB 以内的`);
+          return;
+        }
+        state.feedbackDraft.imagePath=path;
+        state.feedbackDraft.imageFileID="";
+        state.feedbackUploading=true;
+        render();
+        compressFeedbackImage(path).then(uploadFeedbackImage).then(fileID=>{
+          state.feedbackDraft.imageFileID=fileID;
+          state.feedbackUploading=false;
+          render();
+        }).catch(error=>{
+          state.feedbackUploading=false;
+          state.feedbackDraft.imagePath="";
+          state.feedbackDraft.imageFileID="";
+          notifyError((error&&error.message)||"截图上传失败");
+          render();
+        });
+      });
+    }
+  });
+}
 function feedbackContext(){const context={screen:"feedback"};try{const account=wx.getAccountInfoSync&&wx.getAccountInfoSync();const version=account&&account.miniProgram&&account.miniProgram.version;if(version)context.version=version;}catch(error){}try{const info=wx.getSystemInfoSync();if(info){context.model=info.model||"";context.system=info.system||"";}}catch(error){}if(state.battle&&state.battle.id)context.battleId=state.battle.id;return context;}
 function submitFeedback(){if(!feedbackDraftReady()){const length=feedbackDraftText().trim().length;notifyError(state.feedbackSubmittedToday?"今天已经提交过反馈了，明天再来吧":length<FEEDBACK_MIN?`反馈内容至少 ${FEEDBACK_MIN} 个字`:`反馈内容最多 ${FEEDBACK_MAX} 个字`);return;}if(state.feedbackUploading){notifyError("截图还在上传，稍等一下");return;}state.feedbackBusy=true;render();const draft=state.feedbackDraft;api.submitFeedback({type:draft.type,content:feedbackDraftText().trim(),contact:String(draft.contact||""),imageFileID:draft.imageFileID||"",context:feedbackContext()}).then(result=>{state.feedbackBusy=false;state.feedbackSubmittedToday=true;state.feedbackDraft={type:"bug",content:"",contact:"",imageFileID:"",imagePath:""};state.feedbackTab="mine";if(result&&result.feedback)state.feedbackMine=[result.feedback,...state.feedbackMine.filter(item=>item.id!==result.feedback.id)];wx.showToast({title:"已提交，谢谢你",icon:"none"});render();refreshFeedback();}).catch(error=>{state.feedbackBusy=false;state.error=cloudError(error);notifyError(state.error);render();});}
 function removeFeedback(id){wx.showModal({title:"删除这条反馈？",content:"删除后不能恢复，今天的提交次数也不会退回。",success:result=>{if(!result.confirm)return;api.removeFeedback(id).then(()=>{state.feedbackMine=state.feedbackMine.filter(item=>item.id!==id);wx.showToast({title:"已删除",icon:"none"});render();}).catch(error=>{state.error=cloudError(error);notifyError(state.error);render();});}});}
@@ -703,6 +774,6 @@ function renderFeedbackMine(startY,m){
   });
   ctx.restore();
 }
-function renderFeedback(){serviceBg();const top=serviceHeader("意见反馈","问题、建议、吐槽都可以 · 每天可提交 1 条"),m=12,half=(W-m*2-8)/2;button("feedbackTabWrite",m,top,half,32,"写反馈","",state.feedbackTab==="write");button("feedbackTabMine",m+half+8,top,half,32,"我的反馈","",state.feedbackTab==="mine");const bodyTop=top+44;if(state.feedbackTab==="mine"){renderFeedbackMine(bodyTop,m);return;}let y=bodyTop;if(state.feedbackSubmittedToday){box(m,y,W-m*2,34,10,"#3a2f14","#f0d78d");text("今天已经提交过反馈了，明天再来吧",m+10,y+22,10,"#ffe08a","left",700);y+=44;}text("反馈类型",m,y+7,10,"#aaaed0","left",700);y+=14;const chipW=Math.floor((W-m*2-6)/3);FEEDBACK_TYPES.forEach((item,index)=>{const cx=m+(index%3)*(chipW+3),cy=y+Math.floor(index/3)*34,active=state.feedbackDraft.type===item[0];box(cx,cy,chipW,30,8,active?"#4a3a87":"#1b2345",active?"#c8b6ff":"#586694");text(item[1],cx+chipW/2,cy+20,10,active?"#ffffff":"#b9c0d8","center",700);hit("feedbackType",cx,cy,chipW,30,{type:item[0]});});y+=Math.ceil(FEEDBACK_TYPES.length/3)*34+4;const contentH=86,content=feedbackDraftText();box(m,y,W-m*2,contentH,10,"#1b2345dd","#586694");if(content)wrapText(content,m+10,y+18,W-m*2-20,14,10,"#e7e2ff",4,true);else text("点这里写下你遇到的问题或建议",m+10,y+24,10,"#8f99bc","left");text(`${content.length}/${FEEDBACK_MAX}`,W-m-10,y+contentH-8,8,content.length>FEEDBACK_MAX?"#ff9b9b":"#8b94b8","right");hit("feedbackContent",m,y,W-m*2,contentH);y+=contentH+8;box(m,y,W-m*2,34,10,"#1b2345dd","#586694");text(state.feedbackDraft.contact?`联系方式：${state.feedbackDraft.contact}`:"联系方式（选填，方便回访）",m+10,y+22,10,state.feedbackDraft.contact?"#e7e2ff":"#8f99bc","left");hit("feedbackContact",m,y,W-m*2,34);y+=42;if(state.feedbackDraft.imagePath){box(m,y,W-m*2,76,10,"#1b2345dd","#586694");const thumb=feedbackThumb(state.feedbackDraft.imagePath);if(thumb)ctx.drawImage(thumb,m+6,y+6,64,64);else{box(m+6,y+6,64,64,8,"#0d142b","#3b466b");text("图",m+38,y+44,13,"#8b94b8","center");}text(state.feedbackDraft.imageFileID?"截图已上传":"截图上传中…",m+80,y+30,10,"#e7e2ff","left",700);text("点左侧可重新选择",m+80,y+48,8,"#8b94b8","left");button("feedbackImageClear",W-m-80,y+23,68,30,"移除","",true);hit("feedbackImagePick",m,y,W-m*2-88,76);}else{box(m,y,W-m*2,76,10,"#1b2345dd","#586694");text("+ 添加截图（选填，最多 1 张）",m+12,y+43,10,"#8f99bc","left");hit("feedbackImagePick",m,y,W-m*2,76);}y+=84;text("联系方式仅用于回访，不会公开；截图只用于定位问题。",m,y+8,8,"#7f88aa","left");y+=18;button("feedbackSubmit",m,y,W-m*2,42,state.feedbackBusy?"提交中…":"提交反馈","",feedbackDraftReady());}
+function renderFeedback(){serviceBg();const top=serviceHeader("意见反馈","问题、建议、吐槽都可以 · 每天可提交 1 条"),m=12,half=(W-m*2-8)/2;button("feedbackTabWrite",m,top,half,32,"写反馈","",state.feedbackTab==="write");button("feedbackTabMine",m+half+8,top,half,32,"我的反馈","",state.feedbackTab==="mine");const bodyTop=top+44;if(state.feedbackTab==="mine"){renderFeedbackMine(bodyTop,m);return;}let y=bodyTop;if(state.feedbackSubmittedToday){box(m,y,W-m*2,34,10,"#3a2f14","#f0d78d");text("今天已经提交过反馈了，明天再来吧",m+10,y+22,10,"#ffe08a","left",700);y+=44;}text("反馈类型",m,y+7,10,"#aaaed0","left",700);y+=14;const chipW=Math.floor((W-m*2-6)/3);FEEDBACK_TYPES.forEach((item,index)=>{const cx=m+(index%3)*(chipW+3),cy=y+Math.floor(index/3)*34,active=state.feedbackDraft.type===item[0];box(cx,cy,chipW,30,8,active?"#4a3a87":"#1b2345",active?"#c8b6ff":"#586694");text(item[1],cx+chipW/2,cy+20,10,active?"#ffffff":"#b9c0d8","center",700);hit("feedbackType",cx,cy,chipW,30,{type:item[0]});});y+=Math.ceil(FEEDBACK_TYPES.length/3)*34+4;const contentH=86,content=feedbackDraftText();box(m,y,W-m*2,contentH,10,"#1b2345dd","#586694");if(content)wrapText(content,m+10,y+18,W-m*2-20,14,10,"#e7e2ff",4,true);else text("点这里写下你遇到的问题或建议",m+10,y+24,10,"#8f99bc","left");const shownLength=content.trim().length,counterLabel=shownLength<FEEDBACK_MIN?`${shownLength}/${FEEDBACK_MAX}（至少 ${FEEDBACK_MIN} 字）`:`${shownLength}/${FEEDBACK_MAX}`;text(counterLabel,W-m-10,y+contentH-8,8,shownLength>FEEDBACK_MAX?"#ff9b9b":shownLength<FEEDBACK_MIN?"#c8a6ff":"#8b94b8","right");hit("feedbackContent",m,y,W-m*2,contentH);y+=contentH+8;box(m,y,W-m*2,34,10,"#1b2345dd","#586694");text(state.feedbackDraft.contact?`联系方式：${state.feedbackDraft.contact}`:"联系方式（选填，方便回访）",m+10,y+22,10,state.feedbackDraft.contact?"#e7e2ff":"#8f99bc","left");hit("feedbackContact",m,y,W-m*2,34);y+=42;if(state.feedbackDraft.imagePath){box(m,y,W-m*2,76,10,"#1b2345dd","#586694");const thumb=feedbackThumb(state.feedbackDraft.imagePath);if(thumb)ctx.drawImage(thumb,m+6,y+6,64,64);else{box(m+6,y+6,64,64,8,"#0d142b","#3b466b");text("图",m+38,y+44,13,"#8b94b8","center");}text(state.feedbackDraft.imageFileID?"截图已上传":"截图上传中…",m+80,y+30,10,"#e7e2ff","left",700);text("点左侧可重新选择",m+80,y+48,8,"#8b94b8","left");button("feedbackImageClear",W-m-80,y+23,68,30,"移除","",true);hit("feedbackImagePick",m,y,W-m*2-88,76);}else{box(m,y,W-m*2,76,10,"#1b2345dd","#586694");text("+ 添加截图（选填，最多 1 张）",m+12,y+43,10,"#8f99bc","left");hit("feedbackImagePick",m,y,W-m*2,76);}y+=84;text("联系方式仅用于回访，不会公开；截图只用于定位问题。",m,y+8,8,"#7f88aa","left");y+=18;const ready=feedbackDraftReady(),shortBy=Math.max(0,FEEDBACK_MIN-feedbackDraftText().trim().length);button("feedbackSubmit",m,y,W-m*2,42,state.feedbackBusy?"提交中…":"提交反馈",state.feedbackSubmittedToday?"今天已提交过":ready?"":shortBy?`还差 ${shortBy} 个字`:state.feedbackUploading?"截图还在上传":"",ready&&!state.feedbackBusy);}
 
 exports.__test={openFeedback,refreshFeedback,applyFeedbackResult,feedbackDraftReady,submitFeedback,removeFeedback,editFeedbackField,chooseFeedbackImage,feedbackTypeLabel,FEEDBACK_TYPES,clearDeckDraft,deckCurve,deckSortedCards,deckOwnedCards,addDeckCard,removeDeckCard,fillDeckDraft,deckLimit,deckQuantity,disassembleValue,cardActionState,activeBalanceAdjustment,state,render,loadCardArt,cardArt,resultsLayout};
