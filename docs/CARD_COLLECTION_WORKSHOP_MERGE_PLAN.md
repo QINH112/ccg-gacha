@@ -298,6 +298,13 @@ shinyDisassembleValue = normalDisassembleValue × 3
 - 明确用户手动验收为主要完成证据。
 - 明确本轮只建立计划，不修改运行时代码。
 
+## 2026-11-19 补记：调整期全额分解
+
+- 规则：卡牌处于「平衡调整公告」生效期内（`publishedAt` 起 30 天）时，分解返还**合成价**（普通 40 / 稀有 100…），闪卡 ×3；过期回落分解价（5 / 20…）。
+- 服务端实现：`cloudfunctions/workshop/index.js` 的 `balanceValue()`，取值顺序 `change.originalCraftCost` → `config.craft[rarity]` → `config.disassemble[rarity]`（本轮补了第三级回落，避免配置缺字段时静默返 0）。
+- 数据侧：`cloudfunctions/initGameData/index.js` 的种子公告现在显式写入 `originalCraftCost`（c001/c002 = 40，r009 = 100）。**种子公告只在 `initGameData` 运行时写入**，所以必须重跑一次（参数 `{}`）才会带上这个字段；同理 `workshop` 云函数必须重新上传，否则线上仍是旧逻辑（分解后只加 5 星尘）。
+- 回归：`node tools/test_workshop_rules.js` 覆盖「公告有 originalCraftCost」「公告缺 originalCraftCost（按合成价）」「窗口过期（按分解价）」「公告更新后取最新」四种情况。
+
 ## 文档与实现的不一致（待用户确认）
 
 1. **分解是否需要确认弹窗**：本计划 `:268-283` 记「分解无确认弹窗」，但 `game.js` 的 `doWorkshop()` 对 `disassemble` 仍走 `wx.showModal` 二次确认。以哪个为准待定；未擅自改行为。

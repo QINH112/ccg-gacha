@@ -135,6 +135,19 @@ async function rejects(promise, pattern, label) {
   });
   const adjusted = await workshop.main({ action: "disassemble", cardId: "c001" });
   assert.equal(adjusted.player.dust, 7, "公告调整期分解应按 originalCraftCost 返还 7 星尘");
+  // 公告没写 originalCraftCost（initGameData 种子就是这种）时，应按当前合成价全额返还
+  records("balanceNotices").set("notice-plain", {
+    id: "notice-plain",
+    enabled: true,
+    publishedAt: Date.now() - 3600000,
+    changes: [{ cardId: "r001", name: "月影侍从" }],
+  });
+  {
+    seed(player({ inventory: [{ cardId: "r001", normalCount: 1, shinyCount: 0 }], dust: 0 }));
+    const result = await workshop.main({ action: "disassemble", cardId: "r001", shiny: false });
+    assert.equal(result.player.dust, 100, `公告缺少 originalCraftCost 时应按合成价全额返还（稀有 100），实际 ${result.player.dust}`);
+  }
+  records("balanceNotices").delete("notice-plain");
   records("balanceNotices").delete("notice-c001");
 
   // 调整窗口内分解闪卡 → 3 倍原价

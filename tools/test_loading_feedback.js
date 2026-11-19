@@ -179,6 +179,16 @@ function tap() {
   assert.strictEqual(state.slowLoading, false, "数据到达后加载提示应消失");
   assert.strictEqual(state.screen, "decks", "数据到达后仍停在牌组页");
 
+  // 4.5) 对战准备页也立刻切过去（它原来是等两个请求回来才切）
+  state.screen = "home";
+  state.configReady = true;
+  state.hit = [{ id: "battleSetup", x: 0, y: 0, w: 200, h: 200 }];
+  tap();
+  await settle(2);
+  assert.strictEqual(state.screen, "battleSetup", "点对战入口应立即进入对战准备页，不等云端");
+  for (const call of pendingCalls.splice(0)) call.resolve({ result: { slots: [], game: null } });
+  await settle(6);
+
   // 5) 页面没被冻结：导航类入口照常立刻响应
   state.hit = [{ id: "history", x: 0, y: 0, w: 200, h: 200 }];
   tap();
