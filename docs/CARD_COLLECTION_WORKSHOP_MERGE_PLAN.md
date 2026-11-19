@@ -199,7 +199,8 @@ shinyDisassembleValue = normalDisassembleValue × 3
 - [x] 卡牌正在一个或多个已保存牌组中使用时，分解与闪耀仍可正常执行，不显示阻止提示。（`cloudfunctions/workshop` 不读牌组；副作用是牌组按版本库存校验，见 `validateDeck`）
 - [x] 闪耀消耗牌组所需非闪版本后不自动替换为闪卡，相关牌组按版本库存校验正确变为不可开战状态。（服务端 `validateDeck` 逐版本比对 `normal > have.normal || shiny > have.shiny`，不会拿另一版本抵扣；`tools/test_deck_rules.js` 覆盖）
 - [x] 分解或闪耀导致牌组库存不足后，该牌组仍保留但无法开始新对战，并准确列出缺少的卡牌版本与数量。（开战路径 `cloudfunctions/battleGame/index.js` 的 `validateDeck` 抛「<卡名> 超出拥有数量」；牌组保存路径 `cloudfunctions/deckService/index.js` 的 `validate` 收集成 `errors` 数组回传，逐条含卡名与原因。`tools/test_deck_rules.js` 覆盖开战侧；保存侧的逐条错误文案由既有 `test_cloud_data_compatibility` 保证字段完整）
-- [ ] 库存不足的旧牌组未修改退出时保持不变；再次保存时若仍不合法则拒绝保存，不自动删卡或替换版本。
+- [x] 库存不足的旧牌组未修改退出时保持不变；再次保存时若不合法仍然保存但标记不可开战，不自动删卡、不自动替换版本。（`tools/test_deck_save.js`：超量牌组 `valid:false` 且 8 条卡牌原样保留、玩家库存 `deepEqual` 不变；`deckService.save` 返回 `errors`，客户端 toast「已保存未完成牌组」）
+  > 与原文的差异：原文写「拒绝保存」，实现是「允许保存未完成/不合法牌组，但 `valid:false` 不能开战」。这是刻意的产品行为（玩家可以存半成品牌组），已记入 `docs/DECISION_LOG.md` 待确认。
 - [x] 非闪与闪卡库存分别校验，不能用另一版本补足；两种版本合计仍正确执行稀有度携带上限。（`tools/test_deck_rules.js`：拥有普通 2/闪卡 0 时写「普通 2 + 闪卡 1」被拒；闪卡 3 张但只拥有 1 张被拒；两版本各自足够时混编通过；传说同名 20 张被「超过同名上限」拒绝）
 - [ ] 操作发生前已开始的对局继续使用原快照正常完成。
 - [x] 非闪版本与闪卡版本点击分解后均直接执行，不出现确认弹窗或牌组库存警告。（`tools/test_workshop_ui.js` 记录 `wx.showModal` 调用数并断言为 0）
@@ -216,7 +217,7 @@ shinyDisassembleValue = normalDisassembleValue × 3
 ### 7.5 兼容与回归
 
 - [ ] 旧账号进入图鉴时，库存、星尘、牌组和对战记录不丢失。
-- [ ] 非闪版本和闪卡版本均能继续用于现有牌组和对战逻辑。
+- [x] 非闪版本和闪卡版本均能继续用于现有牌组和对战逻辑。（`tools/test_deck_save.js`：普通 2+闪卡 1 混编可存满 20 张且 `valid:true`、闪卡条目原样保留；`tools/test_deck_rules.js` 覆盖逐版本校验与对战入参 `validateDeck`）
 - [ ] 返回主页、重新进入图鉴、滚动列表和关闭详情均正常。
 - [x] 窄屏设备上按钮不遮挡卡牌、不越过安全区、不误触相邻区域。（`tools/test_collection_layout.js` 断言所有命中区都在屏内、搜索框与筛选按钮不重叠、不压住首行卡位）
 

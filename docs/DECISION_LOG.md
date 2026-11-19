@@ -40,6 +40,12 @@
 | Q3 | 闪卡是否要有「稀有度上限」 | **不设上限**。闪卡张数不受限制，只要凑满 3 张同名普通卡就能合成一张闪卡，之后可以继续攒 | 代码**保持现状**（客户端 `shinyEnabled = normal>=3`、服务端只校验 3 张普通卡、`gameConfig` 不新增 `shinyLimit`）；`CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.3 那 3 条按「无上限」改写为已确认，不再作为待验收项 |
 | — | 3 张母版白边（`c008` / `r008` / `s008`）与临界项 `c025` 要不要裁 | **不要管**，保持现状 | 裁边候选留在 `design/generated/edge-trimmed/` 备查，不替换 `design/card-art/source/` 里的原始母版，不重建分包；`check_card_art_edges.py` 仍可随时复查 |
 
+## 待用户确认
+
+| 编号 | 问题 | 现状 | 影响 |
+| --- | --- | --- | --- |
+| Q4 | 不合法牌组（超量/未满 20 张）保存时，应该「拒绝保存」还是「允许保存但不可开战」？ | 实现是**允许保存**（`deckService.save` 返回 `valid:false` + `errors`，客户端 toast「已保存未完成牌组」）；验收文档原文写的是「拒绝保存」 | `CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.4；`tools/test_deck_save.js` 按现状钉死 |
+
 ## 待办衔接
 
 - 真机验收：按 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` 的 A–F 共 29 条逐项执行。
