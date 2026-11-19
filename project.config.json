@@ -1,7 +1,28 @@
 {
-  "description": "星界召唤 CCG 微信小游戏 Canvas 抽卡 Demo",
+  "description": "卤蛋传说 CCG 微信小游戏 Canvas 卡牌游戏",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "design"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "tools"
+      },
+      {
+        "type": "file",
+        "value": "assets/backgrounds/home-clean-v1.png"
+      },
+      {
+        "type": "file",
+        "value": "assets/backgrounds/home-clean-imagegen-v1.png"
+      }
+    ],
     "include": []
   },
   "setting": {
@@ -32,7 +53,7 @@
   "compileType": "game",
   "libVersion": "3.6.5",
   "appid": "wxa7b371c950f257b6",
-  "projectname": "astral-ccg-gacha",
+  "projectname": "卤蛋传说",
   "gameRoot": "./",
   "cloudfunctionRoot": "cloudfunctions/",
   "isGameTourist": false,

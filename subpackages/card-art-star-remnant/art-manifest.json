@@ -1,0 +1,32 @@
+{
+  "setId": "star-remnant",
+  "package": "card-art-star-remnant",
+  "size": [
+    512,
+    608
+  ],
+  "quality": 84,
+  "cards": {
+    "s001": "subpackages/card-art-star-remnant/images/s001.jpg",
+    "s002": "subpackages/card-art-star-remnant/images/s002.jpg",
+    "s003": "subpackages/card-art-star-remnant/images/s003.jpg",
+    "s004": "subpackages/card-art-star-remnant/images/s004.jpg",
+    "s005": "subpackages/card-art-star-remnant/images/s005.jpg",
+    "s006": "subpackages/card-art-star-remnant/images/s006.jpg",
+    "s007": "subpackages/card-art-star-remnant/images/s007.jpg",
+    "s008": "subpackages/card-art-star-remnant/images/s008.jpg",
+    "s009": "subpackages/card-art-star-remnant/images/s009.jpg",
+    "s010": "subpackages/card-art-star-remnant/images/s010.jpg",
+    "s011": "subpackages/card-art-star-remnant/images/s011.jpg",
+    "s012": "subpackages/card-art-star-remnant/images/s012.jpg",
+    "s013": "subpackages/card-art-star-remnant/images/s013.jpg",
+    "s014": "subpackages/card-art-star-remnant/images/s014.jpg",
+    "s015": "subpackages/card-art-star-remnant/images/s015.jpg",
+    "s016": "subpackages/card-art-star-remnant/images/s016.jpg",
+    "s017": "subpackages/card-art-star-remnant/images/s017.jpg",
+    "s018": "subpackages/card-art-star-remnant/images/s018.jpg",
+    "s019": "subpackages/card-art-star-remnant/images/s019.jpg",
+    "s020": "subpackages/card-art-star-remnant/images/s020.jpg"
+  },
+  "totalBytes": 2205779
+}

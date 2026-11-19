@@ -1,6 +1,16 @@
 {
   "deviceOrientation": "portrait",
   "showStatusBar": false,
+  "subpackages": [
+    {
+      "name": "card-art-base",
+      "root": "subpackages/card-art-base"
+    },
+    {
+      "name": "card-art-star-remnant",
+      "root": "subpackages/card-art-star-remnant"
+    }
+  ],
   "networkTimeout": {
     "request": 10000,
     "connectSocket": 10000,

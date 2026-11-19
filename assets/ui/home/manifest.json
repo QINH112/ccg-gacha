@@ -1,0 +1,309 @@
+{
+  "designSize": [
+    941,
+    1672
+  ],
+  "background": "assets/backgrounds/home-clean-imagegen-v1.jpg",
+  "battleBackground": "assets/backgrounds/battle-imagegen-v1.jpg",
+  "cardArtMask": { "path": "assets/ui/cards/card-art-mask-v1.png", "width": 512, "height": 768 },
+  "assets": {
+    "player": {
+      "path": "assets/ui/home/player.png",
+      "source": "design/layers/11_player_info_bar.png",
+      "sourceRect": [
+        29,
+        245,
+        252,
+        70
+      ],
+      "width": 252,
+      "height": 70
+    },
+    "ticket": {
+      "path": "assets/ui/home/ticket.png",
+      "source": "design/layers/12_ticket_resource_bar.png",
+      "sourceRect": [
+        356,
+        257,
+        181,
+        48
+      ],
+      "width": 181,
+      "height": 48
+    },
+    "coin": {
+      "path": "assets/ui/home/coin.png",
+      "source": "design/layers/13_coin_resource_bar.png",
+      "sourceRect": [
+        549,
+        256,
+        174,
+        48
+      ],
+      "width": 174,
+      "height": 48
+    },
+    "dust": {
+      "path": "assets/ui/home/dust.png",
+      "source": "design/layers/14_dust_resource_bar.png",
+      "sourceRect": [
+        738,
+        256,
+        182,
+        48
+      ],
+      "width": 182,
+      "height": 48
+    },
+    "poolBase": {
+      "path": "assets/ui/home/poolBase.png",
+      "source": "design/layers/15_pool_base.png",
+      "sourceRect": [
+        28,
+        623,
+        308,
+        325
+      ],
+      "width": 308,
+      "height": 325
+    },
+    "poolMixed": {
+      "path": "assets/ui/home/poolMixed.png",
+      "source": "design/layers/16_pool_mixed.png",
+      "sourceRect": [
+        344,
+        628,
+        270,
+        323
+      ],
+      "width": 270,
+      "height": 323
+    },
+    "poolStarRemnant": {
+      "path": "assets/ui/home/poolStarRemnant.png",
+      "source": "design/layers/17_pool_star_remnant.png",
+      "sourceRect": [
+        634,
+        625,
+        281,
+        326
+      ],
+      "width": 281,
+      "height": 326
+    },
+    "drawSingle": {
+      "path": "assets/ui/home/drawSingle.png",
+      "source": "design/layers/18_draw_single.png",
+      "sourceRect": [
+        39,
+        991,
+        292,
+        110
+      ],
+      "width": 292,
+      "height": 110
+    },
+    "drawFive": {
+      "path": "assets/ui/home/drawFive.png",
+      "source": "design/layers/19_draw_five.png",
+      "sourceRect": [
+        337,
+        992,
+        288,
+        109
+      ],
+      "width": 288,
+      "height": 109
+    },
+    "drawTen": {
+      "path": "assets/ui/home/drawTen.png",
+      "source": "design/layers/20_draw_ten.png",
+      "sourceRect": [
+        623,
+        992,
+        281,
+        109
+      ],
+      "width": 281,
+      "height": 109
+    },
+    "sign": {
+      "path": "assets/ui/home/sign.png",
+      "source": "design/layers/21_daily_signin.png",
+      "sourceRect": [
+        38,
+        1142,
+        152,
+        141
+      ],
+      "width": 152,
+      "height": 141
+    },
+    "history": {
+      "path": "assets/ui/home/history.png",
+      "source": "design/layers/22_draw_history.png",
+      "sourceRect": [
+        216,
+        1143,
+        148,
+        140
+      ],
+      "width": 148,
+      "height": 140
+    },
+    "collection": {
+      "path": "assets/ui/home/collection.png",
+      "source": "design/layers/23_collection.png",
+      "sourceRect": [
+        391,
+        1142,
+        151,
+        141
+      ],
+      "width": 151,
+      "height": 141
+    },
+    "workshop": {
+      "path": "assets/ui/home/workshop.png",
+      "source": "design/layers/24_workshop.png",
+      "sourceRect": [
+        569,
+        1142,
+        146,
+        141
+      ],
+      "width": 146,
+      "height": 141
+    },
+    "shop": {
+      "path": "assets/ui/home/shop.png",
+      "source": "design/layers/25_shop.png",
+      "sourceRect": [
+        747,
+        1143,
+        153,
+        140
+      ],
+      "width": 153,
+      "height": 140
+    },
+    "adjustAnnouncement": {
+      "path": "assets/ui/home/adjustAnnouncement.png",
+      "source": "design/generated/home-button-adjust-announcement/adjustAnnouncement@4x.png",
+      "sourceRect": [
+        779,
+        1148,
+        135,
+        125
+      ],
+      "width": 152,
+      "height": 141
+    },
+    "mail": {
+      "path": "assets/ui/home/mail.png",
+      "source": "design/layers/26_mail.png",
+      "sourceRect": [
+        35,
+        1315,
+        132,
+        141
+      ],
+      "width": 132,
+      "height": 141
+    },
+    "tasks": {
+      "path": "assets/ui/home/tasks.png",
+      "source": "design/layers/27_daily_tasks.png",
+      "sourceRect": [
+        187,
+        1315,
+        135,
+        141
+      ],
+      "width": 135,
+      "height": 141
+    },
+    "achievements": {
+      "path": "assets/ui/home/achievements.png",
+      "source": "design/layers/28_achievements.png",
+      "sourceRect": [
+        344,
+        1315,
+        132,
+        141
+      ],
+      "width": 132,
+      "height": 141
+    },
+    "decks": {
+      "path": "assets/ui/home/decks.png",
+      "source": "design/layers/29_decks.png",
+      "sourceRect": [
+        501,
+        1315,
+        130,
+        141
+      ],
+      "width": 130,
+      "height": 141
+    },
+    "battle": {
+      "path": "assets/ui/home/battle.png",
+      "source": "design/layers/30_battle-v2.png",
+      "sourceRect": [
+        658,
+        1315,
+        121,
+        141
+      ],
+      "width": 121,
+      "height": 141
+    },
+    "battleHistory": {
+      "path": "assets/ui/home/battleHistory.png",
+      "source": "design/layers/31_battle_history-v2.png",
+      "sourceRect": [
+        810,
+        1315,
+        116,
+        141
+      ],
+      "width": 116,
+      "height": 141
+    },
+    "cloudSave": {
+      "path": "assets/ui/home/cloudSave.png",
+      "source": "design/layers/32_cloud_save_button.png",
+      "sourceRect": [
+        267,
+        1541,
+        404,
+        73
+      ],
+      "width": 404,
+      "height": 73
+    },
+    "limited": {
+      "path": "assets/ui/home/limited.png",
+      "source": "design/layers/33_limited_badge.png",
+      "sourceRect": [
+        830,
+        624,
+        95,
+        86
+      ],
+      "width": 95,
+      "height": 86
+    }
+  },
+  "cardFrames": {
+    "common": { "path": "assets/ui/cards/card-frame-common-v1.png", "width": 512, "height": 768 },
+    "rare": { "path": "assets/ui/cards/card-frame-rare-v1.png", "width": 512, "height": 768 },
+    "epic": { "path": "assets/ui/cards/card-frame-epic-v1.png", "width": 512, "height": 768 },
+    "legendary": { "path": "assets/ui/cards/card-frame-legendary-v1.png", "width": 512, "height": 768 },
+    "commonShiny": { "path": "assets/ui/cards/card-frame-common-shiny-v1.png", "width": 512, "height": 768 },
+    "rareShiny": { "path": "assets/ui/cards/card-frame-rare-shiny-v1.png", "width": 512, "height": 768 },
+    "epicShiny": { "path": "assets/ui/cards/card-frame-epic-shiny-v1.png", "width": 512, "height": 768 },
+    "legendaryShiny": { "path": "assets/ui/cards/card-frame-legendary-shiny-v1.png", "width": 512, "height": 768 }
+  }
+}

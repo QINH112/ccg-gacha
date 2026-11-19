@@ -22,12 +22,13 @@ function freshPlayer() {
     collectionHistory:{ normalIds:[], shinyIds:[] },
     metrics:{ lifetime:{ coinEarned:1000, ticketEarned:100 }, daily:{ key:"", values:{} }, weekly:{ key:"", values:{} } },
     taskState:{ daily:{ key:"", snapshots:[], claimed:{}, bonusClaimed:false }, weekly:{ key:"", snapshots:[], claimed:{}, bonusClaimed:false }, achievements:{ completed:{}, claimed:{}, versions:{}, baselines:{} } },
+    uiState:{ lastReadBalanceNoticeId:"" },
     migrationVersion:3, createdAt:now, updatedAt:now
   };
 }
 function normalize(raw) {
   if (!raw) return freshPlayer();
-  const source = raw || {}, pity = source.pity || {}, sign = source.signIn || {};
+  const source = raw || {}, pity = source.pity || {}, sign = source.signIn || {}, uiState = source.uiState || {};
   const items = inventory(source.inventory);
   const normalFromInventory = items.filter(item => item.normalCount > 0).map(item => item.cardId);
   const shinyFromInventory = items.filter(item => item.shinyCount > 0).map(item => item.cardId);
@@ -54,6 +55,7 @@ function normalize(raw) {
       weekly:{ key:String(oldMetrics.weekly && oldMetrics.weekly.key || ""), values:{ ...oldMetrics.weekly && oldMetrics.weekly.values } }
     },
     taskState:source.taskState || { daily:{ key:"", snapshots:[], claimed:{}, bonusClaimed:false }, weekly:{ key:"", snapshots:[], claimed:{}, bonusClaimed:false }, achievements:{ completed:{}, claimed:{}, versions:{}, baselines:{} } },
+    uiState:{ lastReadBalanceNoticeId:String(uiState.lastReadBalanceNoticeId || "") },
     migrationVersion:3, createdAt:Number(source.createdAt || Date.now()), updatedAt:Date.now()
   };
 }
@@ -208,7 +210,7 @@ async function applyRewards(transaction, player, rewards, cards, openid, source,
   return granted;
 }
 function redDots(mailCount, daily, weekly, achievements) {
-  const taskClaimable = daily.tasks.some(item => item.completed && !item.claimed) || weekly.tasks.some(item => item.completed && !item.claimed) || (daily.bonus && daily.bonus.completed && !daily.bonus.claimed) || (weekly.bonus && weekly.bonus.completed && !weekly.bonus.claimed);
+  const taskClaimable = Boolean(daily.tasks.some(item => item.completed && !item.claimed) || weekly.tasks.some(item => item.completed && !item.claimed) || (daily.bonus && daily.bonus.completed && !daily.bonus.claimed) || (weekly.bonus && weekly.bonus.completed && !weekly.bonus.claimed));
   return { mail:mailCount > 0, tasks:taskClaimable, achievements:achievements.some(item => item.completed && !item.claimed) };
 }
 async function dashboard(openid) {
