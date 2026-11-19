@@ -198,6 +198,18 @@ async function tap(data) {
   assert(runtime.deckOwnedCards().every(item => item.name.includes("测试卡3")), "搜索未生效");
   state.deckSearch = "";
 
+  // 9) 空牌组与空筛选都有引导文案
+  openEditor();
+  renderedText.length = 0;
+  runtime.render();
+  assert(renderedText.includes("还没有卡牌"), "空牌组应有「还没有卡牌」引导");
+  assert(renderedText.some(text => text.includes("点左侧卡面")), "空牌组应提示点左侧卡面");
+  state.deckSearch = "不存在的卡名";
+  renderedText.length = 0;
+  runtime.render();
+  assert(renderedText.includes("没有符合条件的卡牌"), "筛选无结果时应有提示");
+  state.deckSearch = "";
+
   console.log("deck-editor-ui-ok cells=", cells.length, "fill=20 curveOk filtersOk");
 })().catch(error => {
   console.error("deck-editor-ui-failed", error);

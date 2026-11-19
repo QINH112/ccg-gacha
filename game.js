@@ -356,6 +356,8 @@ function renderDeckEditor(){
     if(item.normalCount>0){const w=Math.min(52,(rightW-14)/2);hit("deckRemove",rightX+5,y+31,w,16,{cardId:item.cardId,shiny:false});box(rightX+5,y+31,w,16,6,"#2a3352","#4a557d");text(`普通 ${item.normalCount}`,rightX+5+w/2,y+43,8,"#dbe2ff","center",700);}
     if(item.shinyCount>0){const w=Math.min(52,(rightW-14)/2),sx=rightX+rightW-5-w;hit("deckRemove",sx,y+31,w,16,{cardId:item.cardId,shiny:true});box(sx,y+31,w,16,6,"#4a3a17","#f0d78d");text(`闪卡 ${item.shinyCount}`,sx+w/2,y+43,8,"#ffe08a","center",700);}
   });
+  if(!cards.length){box(m,startY+30,leftW-m-4,58,10,"#141a33cc","#3b466b");text("没有符合条件的卡牌",m+8,startY+52,10,"#dbe2ff","left",700);text("试试点「全部卡牌」清掉筛选",m+8,startY+70,8,"#8b94b8");}
+  if(!deckItems.length){box(rightX,startY+30,rightW,72,10,"#141a33cc","#3b466b");text("还没有卡牌",rightX+6,startY+52,10,"#dbe2ff","left",700);text("点左侧卡面",rightX+6,startY+68,8,"#8b94b8");text("就能加入牌组",rightX+6,startY+82,8,"#8b94b8");}
   ctx.restore();scrollBar(startY);
   if(state.deckFilterOpen)renderDeckFilters();
 }
