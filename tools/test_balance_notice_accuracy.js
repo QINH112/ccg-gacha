@@ -6,6 +6,9 @@
 
 const assert = require("assert");
 const Module = require("module");
+const fs = require("fs");
+const path = require("path");
+const root = path.join(__dirname, "..");
 
 const originalLoad = Module._load;
 Module._load = function(request, parent, isMain) {
@@ -62,6 +65,13 @@ for (const notice of notices) {
       }
     }
     assert.ok(change.note, `${change.cardId} 缺少一句话说明`);
+
+    // 立绘：公告必须保存发布时的 artPath，且与卡牌自身路径一致、文件真实存在
+    assert.ok(change.artPath, `${change.cardId} 缺少 artPath，公告立绘无法展示`);
+    assert.equal(change.artPath, card.artPath, `${change.cardId} 的公告立绘路径应与卡牌数据一致`);
+    assert.match(change.artPath, /^subpackages\/card-art-[a-z-]+\/images\/[a-z0-9]+\.jpg$/, `${change.cardId} 的 artPath 格式不合法`);
+    assert.ok(change.artPath.endsWith(`/images/${change.cardId}.jpg`), `${change.cardId} 的 artPath 与卡牌 ID 不一致`);
+    assert.ok(fs.existsSync(path.join(root, change.artPath)), `${change.cardId} 的立绘文件不存在：${change.artPath}`);
   }
 }
 

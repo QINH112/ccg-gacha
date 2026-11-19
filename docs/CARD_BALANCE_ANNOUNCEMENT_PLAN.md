@@ -649,7 +649,7 @@ node tools/validate_release_readiness.js
 
 ### v1.3 - 2026-11-19
 
-- 确认每张调整卡片右侧展示发布时保存的卡牌立绘，使用 `artPath` 指向 `subpackages/card-art-*/images/<cardId>.jpg`。
+- 确认每张调整卡片右侧展示发布时保存的卡牌立绘，使用 `artPath` 指向 `subpackages/card-art-*/images/<cardId>.jpg`（2026-11-19 补实现：`adminGame` 发布时必须校验并落库 `artPath`，`gameData` 透出给客户端，`game.js` 的 `drawNoticeArt()` 按 28% 宽度绘制；自动化见 `tools/test_balance_notice_art.js`，视觉样张 `D:\kaifa\design\review\balance-notice-375x812.png`）
 - 确认公告调整记录必须固化 `originalCraftCost` 与 `originalShinyCraftCost`，用于调整后 30 天内的原价分解。
 - 确认立绘加载失败时不影响前后数值对比、滚动、返回和关闭操作。
 - 确认采用两阶段发布：先创建不可见草稿并固化调整前数据，更新并校验卡牌后再启用公告。

@@ -33,10 +33,15 @@ def tool_names_from(text: str) -> set[str]:
     return names
 
 
+def doc_files():
+    """docs/*.md，跳过 Word/WPS 打开文件时留下的 ~$ 锁文件。"""
+    return [path for path in sorted(DOCS.glob("*.md")) if not path.name.startswith("~$")]
+
+
 def check_tool_references() -> int:
     """1. 文档里引用的每个 tools/ 脚本都必须真实存在。"""
     checked = 0
-    for path in sorted(DOCS.glob("*.md")) + [ROOT / "README.md"] + AGENTS:
+    for path in doc_files() + [ROOT / "README.md"] + AGENTS:
         if not path.exists():
             continue
         text = path.read_text(encoding="utf-8")
@@ -96,14 +101,14 @@ def check_orphan_docs() -> None:
     """3. 每份文档都要能从 README 或另一份文档点进去，避免「写了没人看」。"""
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     linked: set[str] = set()
-    for path in DOCS.glob("*.md"):
+    for path in doc_files():
         linked.add(path.name)
-    for path in DOCS.glob("*.md"):
+    for path in doc_files():
         if path.name in readme:
             continue
         referenced_elsewhere = any(
             path.name in other.read_text(encoding="utf-8")
-            for other in list(DOCS.glob("*.md")) + AGENTS
+            for other in doc_files() + AGENTS
             if other != path
         )
         if not referenced_elsewhere:
@@ -128,11 +133,14 @@ def check_history_markers() -> None:
 
 def check_control_chars() -> None:
     """5. 文档里不能出现游离的控制字符（例如 python 把 \\r 写坏成回车）。"""
-    for path in sorted(DOCS.glob("*.md")) + [ROOT / "README.md"] + AGENTS:
+    for path in doc_files() + [ROOT / "README.md"] + AGENTS:
         if not path.exists():
             continue
         # 必须按字节读：文本模式的通用换行会把 \r 悄悄变成 \n，就查不出来了
         text = path.read_bytes().decode("utf-8")
+        # Windows 编辑器（Word/WPS/记事本）保存的 CRLF 是正常换行，先归一；
+        # 归一时每一处 \r\n 各消耗 2 个字符、产出一个 \n，行号仍然对得上。
+        text = text.replace("\r\n", "\n")
         for index, char in enumerate(text):
             if ord(char) < 32 and char not in "\n\t":
                 line_no = text.count("\n", 0, index) + 1

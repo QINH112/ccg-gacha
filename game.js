@@ -223,7 +223,63 @@ function noticeValue(snapshot,key){if(key==="keywords")return noticeKeywords(sna
 function noticeHeader(title,sub,backId){const top=homeContentTop();text("‹",23,top+19,32,"#ddd6ff","center");hit(backId||"home",0,top-5,48,48);text(fit(title,Math.max(80,W-112),23),50,top+15,23,"#f3edff","left",800);text(fit(sub,Math.max(80,W-100),10),50,top+39,10,"#aab0d1");return top+55;}
 function renderBalanceNoticeList(){serviceBg();const top=noticeHeader("调整公告","历次卡牌平衡调整","home"),m=12,row=86,gap=8,items=state.balanceNotices.items||[];state.maxScroll=Math.max(0,items.length*(row+gap)-(H-top-safeBottom));ctx.save();ctx.beginPath();ctx.rect(0,top,W,H-top-safeBottom);ctx.clip();items.forEach((item,index)=>{const y=top+index*(row+gap)-state.scrollY;if(y+row<top||y>H)return;const latest=state.balanceNotices.latest&&item.id===state.balanceNotices.latest.id;box(m,y,W-m*2,row,11,latest?gradient(y,row,"#30295cdd","#151b38ee"):"#111a39e8",latest?"#dfc66f":"#6473a5");text(item.title,m+14,y+20,14,"#fff","left",700);text(noticeDate(item.publishedAt),W-m-14,y+20,9,"#aeb7d8","right");text(fit(item.summary||`${item.changes.length} 张卡牌调整`,W-m*2-28,10),m+14,y+46,10,"#d1d6e9");text(`${item.changes.length} 张卡牌${latest?" · 最新":""}`,m+14,y+68,9,latest?"#f0d178":"#9fa8c8");clippedHit("openBalanceNotice",m,y,W-m*2,row,item.id,top,H-safeBottom);});if(!items.length)text("暂无卡牌调整公告",W/2,top+70,13,"#d1d6e9","center");ctx.restore();scrollBar(top);}
 function drawNoticeField(label,before,after,x,y,w){const changed=before!==after;text(label,x,y,9,"#9da7ca");fit(before,w*.27,9);text(before,x+w*.34,y,9,changed?"#e4a7af":"#cbd1e5","center",changed?700:400);text("→",x+w*.5,y,10,changed?"#f1cf76":"#747d9c","center",700);fit(after,w*.27,9);text(after,x+w*.68,y,9,changed?"#8fe0b7":"#cbd1e5","center",changed?700:400);return changed;}
-function renderBalanceNoticeDetail(){serviceBg();const notice=state.selectedBalanceNotice||state.balanceNotices.latest;if(!notice){state.balanceNoticeView="list";renderBalanceNoticeList();return;}const top=noticeHeader(notice.title,`${noticeDate(notice.publishedAt)} · ${notice.changes.length} 张卡牌`,"balanceNoticeList"),m=12,gap=10,row=230,summaryHeight=notice.summary?50:0,contentHeight=summaryHeight+notice.changes.length*(row+gap);state.maxScroll=Math.max(0,contentHeight-(H-top-safeBottom));ctx.save();ctx.beginPath();ctx.rect(0,top,W,H-top-safeBottom);ctx.clip();let y=top-state.scrollY;if(notice.summary){box(m,y,W-m*2,42,9,"#27284bdd","#666fa0");text(fit(notice.summary,W-m*2-24,10),m+12,y+21,10,"#d9dcef");y+=summaryHeight;}notice.changes.forEach(change=>{if(y+row>=top&&y<=H){box(m,y,W-m*2,row,11,gradient(y,row,"#25284bdd","#11162eee"),"#737daf");text(change.name,m+14,y+20,15,"#fff","left",800);text(change.cardId,W-m-14,y+20,9,"#929bbd","right");text("修改前",m+(W-m*2)*.34,y+43,9,"#dca4ad","center",700);text("修改后",m+(W-m*2)*.68,y+43,9,"#8fe0b7","center",700);const width=W-m*2-28,x=m+14;drawNoticeField("费用",noticeValue(change.before,"cost"),noticeValue(change.after,"cost"),x,y+65,width);drawNoticeField("攻击",noticeValue(change.before,"attack"),noticeValue(change.after,"attack"),x,y+84,width);drawNoticeField("生命",noticeValue(change.before,"health"),noticeValue(change.after,"health"),x,y+103,width);drawNoticeField("关键词",noticeValue(change.before,"keywords"),noticeValue(change.after,"keywords"),x,y+122,width);text("效果",x,y+144,9,"#9da7ca");wrapText(`前：${noticeValue(change.before,"rulesText")}`,x+42,y+139,width-42,13,8,"#d0b8c0",3,false);wrapText(`后：${noticeValue(change.after,"rulesText")}`,x+42,y+179,width-42,13,8,"#b9dcc9",3,false);if(change.note)text(fit(change.note,width,8),x,y+218,8,"#efd181");}y+=row+gap;});ctx.restore();scrollBar(top);}
+function renderBalanceNoticeDetail(){
+  serviceBg();
+  const notice=state.selectedBalanceNotice||state.balanceNotices.latest;
+  if(!notice){state.balanceNoticeView="list";renderBalanceNoticeList();return;}
+  const top=noticeHeader(notice.title,`${noticeDate(notice.publishedAt)} · ${notice.changes.length} 张卡牌`,"balanceNoticeList"),m=12,gap=10,row=230,summaryHeight=notice.summary?50:0,panelW=W-m*2,width=panelW-28,artW=Math.round(width*.28),textW=width-artW-12,contentHeight=summaryHeight+notice.changes.length*(row+gap);
+  state.maxScroll=Math.max(0,contentHeight-(H-top-safeBottom));
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0,top,W,H-top-safeBottom);
+  ctx.clip();
+  let y=top-state.scrollY;
+  if(notice.summary){box(m,y,panelW,42,9,"#27284bdd","#666fa0");text(fit(notice.summary,panelW-24,10),m+12,y+21,10,"#d9dcef");y+=summaryHeight;}
+  notice.changes.forEach(change=>{
+    if(y+row>=top&&y<=H){
+      box(m,y,panelW,row,11,gradient(y,row,"#25284bdd","#11162eee"),"#737daf");
+      text(change.name,m+14,y+20,15,"#fff","left",800);
+      text(change.cardId,W-m-14,y+20,9,"#929bbd","right");
+      const x=m+14;
+      text("修改前",x+textW*.34,y+43,9,"#dca4ad","center",700);
+      text("修改后",x+textW*.68,y+43,9,"#8fe0b7","center",700);
+      drawNoticeField("费用",noticeValue(change.before,"cost"),noticeValue(change.after,"cost"),x,y+65,textW);
+      drawNoticeField("攻击",noticeValue(change.before,"attack"),noticeValue(change.after,"attack"),x,y+84,textW);
+      drawNoticeField("生命",noticeValue(change.before,"health"),noticeValue(change.after,"health"),x,y+103,textW);
+      drawNoticeField("关键词",noticeValue(change.before,"keywords"),noticeValue(change.after,"keywords"),x,y+122,textW);
+      text("效果",x,y+144,9,"#9da7ca");
+      wrapText(`前：${noticeValue(change.before,"rulesText")}`,x+42,y+139,textW-42,13,8,"#d0b8c0",3,false);
+      wrapText(`后：${noticeValue(change.after,"rulesText")}`,x+42,y+179,textW-42,13,8,"#b9dcc9",3,false);
+      if(change.note)text(fit(change.note,textW,8),x,y+218,8,"#efd181");
+      drawNoticeArt(change,x+textW+13,y+10,artW,row-20);
+    }
+    y+=row+gap;
+  });
+  ctx.restore();
+  scrollBar(top);
+}
+function noticeArtPath(change){
+  const stored=String(change&&change.artPath||"");
+  if(stored)return stored;
+  const card=(state.cards||[]).find(item=>item.id===change.cardId);
+  return card?cardArtPath(card):"";
+}
+function drawNoticeArt(change,x,y,w,h){
+  const path=noticeArtPath(change);
+  if(!path)return false;
+  const drawn=drawCardArt({id:change.cardId,artPath:path},x,y,w,h,"#8e7bc7",{clip:true,border:false});
+  if(!drawn)return false;
+  const fade=ctx.createLinearGradient(x,0,x+w*.55,0);
+  fade.addColorStop(0,"#161c33f0");
+  fade.addColorStop(1,"#161c3300");
+  ctx.save();
+  rr(x,y,w,h,Math.min(w,h)*.18);
+  ctx.clip();
+  ctx.fillStyle=fade;
+  ctx.fillRect(x,y,w*.55,h);
+  ctx.restore();
+  return true;
+}
 function renderBalanceNotices(){if(state.balanceNoticeView==="list")renderBalanceNoticeList();else renderBalanceNoticeDetail();}
 function renderShop(){serviceBg();const top=header("商店",`金币 ${state.player.coin} · 抽卡券 ${state.player.ticket}`),m=16;box(m,top+18,W-m*2,190,15,gradient(top+18,190,"#2b315dee","#151b38ee"),"#9ba9e0");text("抽卡券",W/2,top+53,24,"#f4edff","center",800);text("每张可进行 1 次召唤",W/2,top+82,11,"#d4d9eb","center");text(`${state.shop.ticketPrice||100} 金币 / 张`,W/2,top+116,18,"#f1d082","center",700);button("buyTicket",m+24,top+148,W-m*2-48,44,"选择购买数量","1 / 5 / 10 / 自定义（上限99）",true);text("金币与抽卡券均由云端结算",W/2,top+235,10,"#aeb7d8","center");}
 function renderMail(){serviceBg();const top=serviceHeader("邮箱",`${state.mail.length} 封可领取邮件`),m=12,row=126,gap=8,actionHeight=38,actionGap=10,listStart=actionHeight+actionGap,clipBottom=H-safeBottom;const hasClaimable=state.mail.length>0,contentHeight=listStart+state.mail.length*(row+gap);state.maxScroll=Math.max(0,contentHeight-(H-top-safeBottom));ctx.save();ctx.beginPath();ctx.rect(0,top,W,H-top-safeBottom);ctx.clip();const actionY=top-state.scrollY;clippedButton("claimAllMail",m,actionY,W-m*2,actionHeight,hasClaimable?"一键领取":"暂无可领取","",hasClaimable,undefined,top,clipBottom);state.mail.forEach((mail,i)=>{const y=top+listStart+i*(row+gap)-state.scrollY;if(y+row<top||y>H)return;box(m,y,W-m*2,row,11,"#111a39e8","#6473a5");text(mail.title,m+14,y+20,14,"#fff","left",700);const days=Math.max(0,Math.ceil((mail.expiresAt-Date.now())/86400000));text(`${new Date(mail.publishedAt).toLocaleDateString()} · 剩余${days}天`,W-m-14,y+20,9,"#aeb7d8","right");text(fit(mail.body||"系统奖励",W-m*2-28,10),m+14,y+45,10,"#d1d6e9");text(fit(rewardsLabel(mail.rewards),W-m*2-110,10),m+14,y+76,10,"#efd181");clippedButton("claimMail",W-m-94,y+66,80,38,"领取","",true,mail.id,top,clipBottom);});if(!state.mail.length)text("暂时没有可领取邮件",W/2,top+listStart+54-state.scrollY,13,"#d1d6e9","center");ctx.restore();scrollBar(top);}
@@ -507,4 +563,4 @@ wx.onShow(()=>{clearBattleDrag();state.selectedPoolId="";state.poolScrollX=0;if(
 setInterval(()=>{if(state.screen!=="battle"||!state.battle||state.loading)return;render();if(state.battle.status==="active"&&Date.now()>=state.battle.deadlineAt&&!state.timerSyncing){state.timerSyncing=true;api.battleStatus().then(result=>{clearBattleDrag();state.battle=result.game;}).catch(error=>{state.error=cloudError(error);}).finally(()=>{state.timerSyncing=false;render();});}},1000);
  loadHomeArt();render();refresh(true);
 
-exports.__test={state,render};
+exports.__test={state,render,loadCardArt,cardArt};

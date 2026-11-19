@@ -25,6 +25,7 @@
 - `tools/test_admin_crud.js` —— 管理端写入契约审计：adminGame 是唯一能直接改「邮件/任务/调整公告/卡牌/玩家资源」的入口，
 - `tools/test_ai_behavior.js`
 - `tools/test_balance_notice_accuracy.js` —— 平衡公告「前后对比」准确性校验：
+- `tools/test_balance_notice_art.js`
 - `tools/test_balance_notices.js`
 - `tools/test_battle_engine.js`
 - `tools/test_battle_persistence.js`
@@ -69,6 +70,7 @@
 
 ## 视觉 QA 渲染（截图写入 D:\kaifa\design\review）
 
+- `tools/render_balance_notice_qa.py` —— 平衡调整公告页的视觉 QA 渲染（含右侧立绘）。
 - `tools/render_battle_board_visual_qa.py`
 - `tools/render_battle_visual_qa.py`
 - `tools/render_card_art_visual_qa.py`

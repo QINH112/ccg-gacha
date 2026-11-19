@@ -70,6 +70,7 @@ node --expose-gc tools/test_cloud_data_compatibility.js
 node --expose-gc tools/test_collection_filters.js
 node --expose-gc tools/test_balance_notices.js
 node --expose-gc tools/test_balance_notice_accuracy.js
+node --expose-gc tools/test_balance_notice_art.js
 node --expose-gc tools/test_card_designs.js
 node --expose-gc tools/test_game_services.js
 node --expose-gc tools/test_battle_persistence.js

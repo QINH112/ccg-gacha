@@ -231,9 +231,9 @@ const initialBalanceNotice = {
   publishedAt:Date.UTC(2026,10,18,4,0,0),
   enabled:true,
   changes:[
-    {cardId:"c001",name:"星尘学徒",before:{cost:1,attack:1,health:2,keywords:[],rulesText:""},after:{cost:1,attack:1,health:3,keywords:[],rulesText:""},note:"生命值提高 1 点。"},
-    {cardId:"c002",name:"月影侍从",before:{cost:1,attack:2,health:1,keywords:[],rulesText:""},after:{cost:1,attack:3,health:1,keywords:[],rulesText:""},note:"攻击力提高 1 点。"},
-    {cardId:"r009",name:"归墟歌者",before:{cost:4,attack:3,health:3,keywords:["deathrattle"],rulesText:"亡语：对所有敌方随从造成 1 点伤害。"},after:{cost:4,attack:4,health:4,keywords:["guard","deathrattle"],rulesText:"城墙；亡语：对所有敌方随从造成 1 点伤害。"},note:"攻击力和生命值各提高 1 点，并新增城墙；原亡语保持不变。"}
+    {cardId:"c001",name:"星尘学徒",artPath:"subpackages/card-art-base/images/c001.jpg",before:{cost:1,attack:1,health:2,keywords:[],rulesText:""},after:{cost:1,attack:1,health:3,keywords:[],rulesText:""},note:"生命值提高 1 点。"},
+    {cardId:"c002",name:"月影侍从",artPath:"subpackages/card-art-base/images/c002.jpg",before:{cost:1,attack:2,health:1,keywords:[],rulesText:""},after:{cost:1,attack:3,health:1,keywords:[],rulesText:""},note:"攻击力提高 1 点。"},
+    {cardId:"r009",name:"归墟歌者",artPath:"subpackages/card-art-base/images/r009.jpg",before:{cost:4,attack:3,health:3,keywords:["deathrattle"],rulesText:"亡语：对所有敌方随从造成 1 点伤害。"},after:{cost:4,attack:4,health:4,keywords:["guard","deathrattle"],rulesText:"城墙；亡语：对所有敌方随从造成 1 点伤害。"},note:"攻击力和生命值各提高 1 点，并新增城墙；原亡语保持不变。"}
   ]
 };
 
