@@ -27,6 +27,7 @@
 - `tools/test_balance_notices.js`
 - `tools/test_battle_engine.js`
 - `tools/test_battle_persistence.js`
+- `tools/test_battle_snapshot.js`
 - `tools/test_card_data_integrity.js` —— 卡牌数据完整性审计（比 test_card_designs 更广的「自洽性」检查）：
 - `tools/test_card_designs.js`
 - `tools/test_cloud_data_compatibility.js`

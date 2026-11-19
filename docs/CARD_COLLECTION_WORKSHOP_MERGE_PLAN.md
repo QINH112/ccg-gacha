@@ -202,7 +202,7 @@ shinyDisassembleValue = normalDisassembleValue × 3
 - [x] 库存不足的旧牌组未修改退出时保持不变；再次保存时若不合法仍然保存但标记不可开战，不自动删卡、不自动替换版本。（`tools/test_deck_save.js`：超量牌组 `valid:false` 且 8 条卡牌原样保留、玩家库存 `deepEqual` 不变；`deckService.save` 返回 `errors`，客户端 toast「已保存未完成牌组」）
   > 与原文的差异：原文写「拒绝保存」，实现是「允许保存未完成/不合法牌组，但 `valid:false` 不能开战」。这是刻意的产品行为（玩家可以存半成品牌组），已记入 `docs/DECISION_LOG.md` 待确认。
 - [x] 非闪与闪卡库存分别校验，不能用另一版本补足；两种版本合计仍正确执行稀有度携带上限。（`tools/test_deck_rules.js`：拥有普通 2/闪卡 0 时写「普通 2 + 闪卡 1」被拒；闪卡 3 张但只拥有 1 张被拒；两版本各自足够时混编通过；传说同名 20 张被「超过同名上限」拒绝）
-- [ ] 操作发生前已开始的对局继续使用原快照正常完成。
+- [x] 操作发生前已开始的对局继续使用原快照正常完成。（`tools/test_battle_snapshot.js`：把玩家库存清空、牌组改空之后，进行中的对局手牌 3 张 / 牌库 17 张不变，继续出牌与结束回合均正常，全程只出现快照内的 19 张卡）
 - [x] 非闪版本与闪卡版本点击分解后均直接执行，不出现确认弹窗或牌组库存警告。（`tools/test_workshop_ui.js` 记录 `wx.showModal` 调用数并断言为 0）
 - [x] 合成此卡与闪耀点击后直接执行；成功即时刷新库存/星尘，失败显示具体原因且本地资源不发生变化。（`tools/test_workshop_ui.js` 断言 `workshop:craft`/`workshop:shiny` 下发、toast 文案、`state.player.dust` 即时变化；失败原因走 `notifyError`，不做乐观修改）
 
