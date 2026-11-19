@@ -649,3 +649,11 @@ git diff --check
 - 关键词标签由最多两行改为单行 `labels.slice(0,4).join("·")`，避免压住「— 星界战场 —」与英雄面板。
 - 行动失败提示：`cleanCloudMessage()` 去掉 `at performAttack (/var/user/index.js:…)` 这类栈帧；`该随从…`/`当前不是你的回合` 这类可自愈的失败只静默 `resyncBattle()`，不再弹提示条。
 - 回归：`smoke_battle_drag_interactions` 的坐标全部改为从 `state.battleZones` / 新增的 `state.battleHandHits` 推导，不再硬编码像素；15 场景、全套件 `js_fail=0`。
+
+### D28 start 被残留对局堵死（2026-11-20）
+
+线上点「开始对战」报 `-504002`。云函数日志显示 `start → processTimeout → aiTurn → performAttack` 抛「该随从当前不能攻击」。
+
+- 根因：`aiTurn` 攻击循环遍历 `[...ai.board]` 快照，前一次攻击的亡语打死后面顺位的己方随从后，旧对象仍被拿去 `performAttack`。
+- 修复：循环内每轮 `ai.board.find(item => item.instanceId === snapshot.instanceId)` 重新取；`start()` 的 `processTimeout` 加 try/catch 并把残留局标 `expired`。
+- 回归：`tools/test_battle_start.js` 覆盖「残留局结算抛错仍能开新局」。

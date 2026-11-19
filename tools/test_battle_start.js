@@ -94,6 +94,34 @@ records("aiDecks").set("pve-starter", {
   const status = await battleGame.main({ action: "status" });
   if (!status.game || status.game.id !== started.game.id) throw new Error("status did not return the started game");
   console.log(`battle-start-ok hand=${started.game.player.hand.length} deck=${started.game.player.deckCount} aiHand=${started.game.ai.handCount}`);
+
+  // 残留一局会在 processTimeout 里被结算；即使结算过程抛错，也必须能开出新对局（线上 -504002 的兜底）
+  records("battleGames").set("start-user", {
+    id: "stale-battle",
+    mode: "pve",
+    difficulty: "easy",
+    deckSlot: 1,
+    deckName: "测试牌组",
+    status: "active",
+    phase: "battle",
+    firstPlayer: "ai",
+    turn: "ai",
+    halfTurns: 2,
+    sequence: 1,
+    player: { name: "你", health: 30, maxHealth: 30, mana: 0, maxMana: 0, tempMana: 0, deck: [], hand: [], board: [], fatigue: 0, heroPowerUsed: false, generalSkill: "draw-two", generalSkillUsed: false, turnsTaken: 2, graveyard: [] },
+    ai: { name: "星界守卫", health: 30, maxHealth: 30, mana: 0, maxMana: 0, tempMana: 0, deck: [], hand: [], board: null, fatigue: 0, heroPowerUsed: true, generalSkill: "draw-two", generalSkillUsed: true, turnsTaken: 2, graveyard: [] },
+    metrics: { cardsPlayed: 0, minionsKilled: 0, minionsLost: 0, heroDamage: 0, heroPowerUsed: 0, generalSkillUsed: 0 },
+    log: [],
+    createdAt: Date.now() - 600000,
+    updatedAt: Date.now() - 600000,
+    deadlineAt: Date.now() - 600000,
+    result: "",
+    logged: false
+  });
+  const restarted = await battleGame.main({ action: "start", difficulty: "easy", slot: 1 });
+  if (!restarted || !restarted.game) throw new Error("stale game blocked starting a new battle");
+  if (restarted.game.id === "stale-battle") throw new Error("stale game was reused instead of replaced");
+  console.log(`battle-start-recovery-ok newGame=${restarted.game.phase}`);
 })().catch(error => {
   console.error("battle-start-failed", error && error.message, error && error.stack && error.stack.split("\n").slice(0,6).join("\n"));
   process.exitCode = 1;

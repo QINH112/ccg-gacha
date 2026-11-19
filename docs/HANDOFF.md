@@ -108,3 +108,12 @@ py tools/p7_evidence_status.py                       # 真机验收还差哪几�
 - 已加固：`start()` 在读取存档后先做三项防御（存档不存在 / `inventory` 不是数组 / `cards` 为空），并把 `cleanAiDeck` 结果校验为 20 张，坏数据时给出中文原因而不是裸 `TypeError`。
 - 客户端 `cloudError()` 增加错误码映射：`-504002/-504003…` → 「云函数执行异常（-504002），请查看云开发日志」，`-1: cloud.callFunction:fail` → 「云端调用失败，请稍后重试」。
 - **下一步需要用户**：微信开发者工具 → 云开发 → 云函数 → `battleGame` → 日志，把点「开始对战」那一秒的红色报错行发我；若有多条，优先看含 `TypeError` 或 `document not found` 的。
+
+### 真因与修复（2026-11-20，云函数日志确认）
+
+日志：`ERROR Result: Error: 该随从当前不能攻击 at performAttack → aiTurn → processTimeout → start`。
+
+- 触发链：上一局超时未结算 → 用户点「开始对战」→ `start()` 先调 `processTimeout(existing)` → 其中的 `aiTurn()` 用 `for(const minion of [...ai.board])` **快照**遍历；前一次攻击的亡语/连锁把后面顺位的己方随从打死（`resolveDeaths` 已从 `ai.board` 移除）后，循环仍拿旧对象调 `performAttack` → 服务端按 id 找不到人 → 抛错 → 整个 `start` 失败 → 客户端只看到 `-504002`。
+- 修复一：攻击循环改成每轮按 `instanceId` 从**当前** `ai.board` 重新取随从，取不到就跳过。
+- 修复二：`start()` 里 `processTimeout` 包 try/catch，结算失败时把残留对局标为 `expired` 并继续开新局（并打 `battle-start-timeout-failed` 日志），不再让一个坏残留局堵死入口。
+- 回归：`tools/test_battle_start.js` 增至两段——正常开局 + 「残留对局结算抛错仍能开新局」（`board: null` 制造 TypeError，断言 `battle-start-recovery-ok`）。
