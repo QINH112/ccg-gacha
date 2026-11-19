@@ -46,6 +46,7 @@
 - `tools/test_workshop_ui.js`
 - `tools/validate_card_art_subpackages.py`
 - `tools/validate_cloudfunctions.py` —— 云函数结构校验：部署前必须全部满足，否则微信开发者工具上传会失败或运行时报错。
+- `tools/validate_docs_consistency.py` —— 文档一致性校验：文档里引用的脚本必须存在、卡牌数量口径必须与代码一致、文档不能变成孤儿。
 - `tools/validate_package_limits.py` —— 微信小游戏代码包体积校验（平台硬限制）。
 - `tools/validate_release_readiness.js`
 - `tools/validate_runtime_budget.py`

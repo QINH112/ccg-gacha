@@ -54,6 +54,7 @@ py tools/validate_card_art_subpackages.py
 py tools/validate_cloudfunctions.py
 py tools/validate_package_limits.py
 py tools/validate_tool_inventory.py
+py tools/validate_docs_consistency.py
 
 # 契约 / 规则测试（两个稳定性冒烟必须带 --expose-gc）
 node --expose-gc tools/test_battle_engine.js

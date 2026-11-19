@@ -156,6 +156,7 @@ py tools/validate_runtime_budget.py
 py tools/validate_cloudfunctions.py
 py tools/validate_package_limits.py
 py tools/validate_tool_inventory.py
+py tools/validate_docs_consistency.py
 node tools/smoke_card_art_loading.js
 node --expose-gc tools/smoke_render_budget.js
 node tools/smoke_home_capsule.js
@@ -356,3 +357,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/capture_devtools_windo
 ## 当前状态
 
 交接说明与待办见 `docs/HANDOFF.md`；产品决策记录见 `docs/DECISION_LOG.md`。
+
+图鉴筛选与卡牌工坊的合并方案与验收记录见 `docs/CARD_COLLECTION_FILTER_SEARCH_PLAN.md`、`docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md`。
