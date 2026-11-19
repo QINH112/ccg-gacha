@@ -164,6 +164,8 @@ node tools/test_workshop_rules.js
 node tools/test_workshop_ui.js
 node tools/test_deck_rules.js
 node tools/test_deck_save.js
+node tools/test_legacy_account.js
+node tools/smoke_collection_navigation.js
 node tools/test_card_data_integrity.js
 node tools/test_shared_constants.js
 node tools/test_draw_pity.js

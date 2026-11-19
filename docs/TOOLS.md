@@ -10,6 +10,7 @@
 - `tools/smoke_battle_stability.js`（需要 `node --expose-gc`）
 - `tools/smoke_card_art_loading.js`
 - `tools/smoke_closed_pool.js`
+- `tools/smoke_collection_navigation.js`
 - `tools/smoke_device_matrix.js`
 - `tools/smoke_game_interactions.js`
 - `tools/smoke_game_runtime.js`
@@ -36,6 +37,7 @@
 - `tools/test_deck_save.js`
 - `tools/test_draw_pity.js` —— 抽卡概率与保底逻辑审计：直接跑 cloudfunctions/drawCards/index.js 的 exports.main，
 - `tools/test_game_services.js`
+- `tools/test_legacy_account.js`
 - `tools/test_shared_constants.js` —— 跨模块共享规则的「单一事实」审计：
 - `tools/test_signin_cycle.js` —— 签到奖励审计：直接跑 cloudfunctions/dailySignIn/index.js 的 exports.main，
 - `tools/test_workshop_rules.js` —— 工坊（分解 / 合成 / 闪耀）服务端规则回归：

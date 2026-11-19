@@ -216,9 +216,9 @@ shinyDisassembleValue = normalDisassembleValue × 3
 
 ### 7.5 兼容与回归
 
-- [ ] 旧账号进入图鉴时，库存、星尘、牌组和对战记录不丢失。
+- [x] 旧账号进入图鉴时，库存、星尘、牌组和对战记录不丢失。（`tools/test_legacy_account.js`：迁移前后的库存 `deepEqual`、星尘 320 保留、已迁移存档金币/已读公告/签到进度/战绩保留、旧牌组卡牌条目原样保留且只标不可开战、`battleLogs` 集合不清空）
 - [x] 非闪版本和闪卡版本均能继续用于现有牌组和对战逻辑。（`tools/test_deck_save.js`：普通 2+闪卡 1 混编可存满 20 张且 `valid:true`、闪卡条目原样保留；`tools/test_deck_rules.js` 覆盖逐版本校验与对战入参 `validateDeck`）
-- [ ] 返回主页、重新进入图鉴、滚动列表和关闭详情均正常。
+- [x] 返回主页、重新进入图鉴、滚动列表和关闭详情均正常。（`tools/smoke_collection_navigation.js`：三轮循环，每轮断言进图鉴有卡位 → 开详情 → 关详情无残留 → 滚动不越界 → 回主页覆盖层清理 → 重进图鉴卡位与卡牌数据完好）
 - [x] 窄屏设备上按钮不遮挡卡牌、不越过安全区、不误触相邻区域。（`tools/test_collection_layout.js` 断言所有命中区都在屏内、搜索框与筛选按钮不重叠、不压住首行卡位）
 
 ## 8. 风险台账
