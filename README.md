@@ -155,6 +155,7 @@ py tools/validate_visual_assets.py
 py tools/validate_runtime_budget.py
 py tools/validate_cloudfunctions.py
 py tools/validate_package_limits.py
+py tools/validate_tool_inventory.py
 node tools/smoke_card_art_loading.js
 node tools/smoke_home_capsule.js
 node tools/test_balance_notice_accuracy.js
