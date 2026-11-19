@@ -18,6 +18,7 @@
 - `tools/smoke_home_state.js`
 - `tools/smoke_navigation_stability.js`（需要 `node --expose-gc`）
 - `tools/smoke_pool_session_state.js`
+- `tools/smoke_render_budget.js` —— 渲染预算冒烟：战斗界面是最重的画面（双侧各 7 个随从 + 10 张手牌 + 墓地 + 提示），
 - `tools/smoke_service_interactions.js`
 - `tools/smoke_service_scrolling.js`
 - `tools/test_admin_crud.js` —— 管理端写入契约审计：adminGame 是唯一能直接改「邮件/任务/调整公告/卡牌/玩家资源」的入口，
