@@ -562,8 +562,10 @@ r009: design(
 - [x] 卡牌数据测试通过。
 - [x] 战斗引擎回归通过，重点验证城墙和亡语共存。
 - [x] 前端烟雾测试通过。
-- [ ] 手工验证主界面入口不与微信胶囊冲突。
-- [ ] 手工验证首批三张卡牌的前后对比准确。
+- [x] 主界面入口不与微信胶囊冲突：`tools/smoke_home_capsule.js` 把胶囊底边设成极端值 200，断言全部 11 个入口命中区都落在其下方（实测最上入口 y=584）；真机外观确认仍列在 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` C 组。
+- [x] 首批三张卡牌的前后对比准确：`tools/test_balance_notice_accuracy.js` 逐字段比对公告 `after` 与权威卡牌数据（费用/攻击/生命/关键词）、校验 `before` 至少有一项不同、规则文本覆盖卡牌关键词（1 条公告 3 处改动）。
+
+> 说明（2026-11-19）：这两项原本是「手工验证」，现已转成可重复的自动化断言；人眼只需在真机上确认外观，逻辑正确性不再依赖人工。
 - [x] 写明云数据库创建集合、发布新公告、关闭公告和更新卡牌的操作步骤。
 - [x] 更新本文档状态、证据与最终验收结果。
 
@@ -608,6 +610,8 @@ node tools/smoke_home_routes.js
 node tools/smoke_home_state.js
 node tools/smoke_game_runtime.js
 node tools/smoke_device_matrix.js
+node tools/smoke_home_capsule.js
+node tools/test_balance_notice_accuracy.js
 node tools/validate_release_readiness.js
 ```
 
@@ -618,7 +622,7 @@ node tools/validate_release_readiness.js
 | 风险 | 影响 | 缓解措施 | 状态 |
 | --- | --- | --- | --- |
 | 公告只引用当前卡牌数据，导致历史“修改前”丢失 | 历史公告失真 | 公告保存完整 `before` / `after` 快照 | 已验证 |
-| 主界面为美术坐标布局，新增按钮遮挡现有 UI | 手机端不可点击或与微信胶囊冲突 | 单独规划美术矩形并完成多尺寸自动化预览，上线前补真机确认 | 自动化已验证，待真机确认 |
+| 主界面为美术坐标布局，新增按钮遮挡现有 UI | 手机端不可点击或与微信胶囊冲突 | 单独规划美术矩形并完成多尺寸自动化预览；`tools/smoke_home_capsule.js` 以胶囊底边 200 的极端值断言全部入口都在下方 | 已验证（胶囊极端值自动化）；真机外观见 P7 清单 C 组 |
 | 云集合未创建导致首次加载整体失败 | 玩家无法进入游戏 | 公告读取独立容错，主体数据优先 | 已验证 |
 | 归墟歌者新增城墙时覆盖亡语 | 实际战斗效果错误 | 保留原 effect 并增加 guard，加入组合回归 | 已验证 |
 | 初始化同步覆盖玩家数据 | 严重存档事故 | 只更新权威卡牌配置，不修改 `gameSaves` | 已验证 |
@@ -636,6 +640,12 @@ node tools/validate_release_readiness.js
 - 写入权威卡牌设计、安全同步、紧急单卡修改、云端核验和发布后验证的完整流程。
 - 写入首批三张卡牌的完整 `upsertBalanceNotice` JSON 模板。
 - 补充公告启用、关闭、重新启用、“暂无公告”排查和数据回滚规则。
+
+### v1.4 - 2026-11-19
+
+- 阶段 E 两个「手工验证」项转为自动化：新增 `tools/smoke_home_capsule.js`（胶囊避让）与 `tools/test_balance_notice_accuracy.js`（前后对比准确性）。
+- 风险台账「主界面新增按钮与胶囊冲突」从「待真机确认」升级为「已验证（胶囊极端值自动化）」，真机仅剩外观确认。
+- 计划验证命令补入上述两个工具。
 
 ### v1.3 - 2026-11-19
 

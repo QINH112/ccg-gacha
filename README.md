@@ -154,8 +154,12 @@ py tools/build_card_frame_variants.py
 py tools/validate_visual_assets.py
 py tools/validate_runtime_budget.py
 node tools/smoke_card_art_loading.js
+node tools/smoke_home_capsule.js
+node tools/test_balance_notice_accuracy.js
 node tools/validate_release_readiness.js
 ```
+
+`smoke_home_capsule.js` 把微信胶囊底边设成极端值 200，断言主界面所有可点入口都在它下方；`test_balance_notice_accuracy.js` 逐字段比对平衡公告的 `after` 与权威卡牌数据，防止「改了卡忘了改公告」。
 
 不要使用 `design/card-template` 中的旧候选卡框作为线上素材；该目录仅保留早期研究过程，运行时使用的是依据用户手绘结构生成的原创卡框。
 
