@@ -59,7 +59,7 @@
 
 | 脚本 | 断言 |
 | --- | --- |
-| `tools/test_deck_editor_ui.js` | 2 列网格且不越界、点卡面加一张、同名上限拦截并提示、点数字减一张、一键补满到 20、满 20 再点被拒、法力曲线合计等于牌组张数、筛选与搜索生效 |
+| `tools/test_deck_editor_ui.js` | 320×568 / 375×812 / 430×932 三种宽度各跑一遍：2 列网格且不越界、点卡面加一张、同名上限拦截并提示、点数字减一张、一键补满到 20、满 20 再点被拒、法力曲线合计等于牌组张数、筛选与搜索生效、空状态文案、点「清空」归零 |
 | `tools/test_deck_editor_consistency.js` | 满 20 张可通过 `deckService.validate`；19 张报「需要 20 张」；同名超限报「最多可放 N 张」；超拥有数量报「超出拥有数量」；一键补满的结果必须通过服务端校验 |
 | `tools/test_deck_rules.js` | 服务端侧的同名上限、版本不可互补、不可用卡等规则（既有） |
 | `tools/render_deck_editor.js` | 用真实 canvas 渲染样张，产物 `design/review/deck-editor-<宽>x<高>.png` |

@@ -627,4 +627,4 @@ wx.onShow(()=>{clearBattleDrag();state.selectedPoolId="";state.poolScrollX=0;if(
 setInterval(()=>{if(state.screen!=="battle"||!state.battle||state.loading)return;render();if(state.battle.status==="active"&&Date.now()>=state.battle.deadlineAt&&!state.timerSyncing){state.timerSyncing=true;api.battleStatus().then(result=>{clearBattleDrag();state.battle=result.game;}).catch(error=>{state.error=cloudError(error);}).finally(()=>{state.timerSyncing=false;render();});}},1000);
  loadHomeArt();render();refresh(true);
 
-exports.__test={deckCurve,deckSortedCards,deckOwnedCards,addDeckCard,removeDeckCard,fillDeckDraft,deckLimit,deckQuantity,disassembleValue,cardActionState,activeBalanceAdjustment,state,render,loadCardArt,cardArt,resultsLayout};
+exports.__test={clearDeckDraft,deckCurve,deckSortedCards,deckOwnedCards,addDeckCard,removeDeckCard,fillDeckDraft,deckLimit,deckQuantity,disassembleValue,cardActionState,activeBalanceAdjustment,state,render,loadCardArt,cardArt,resultsLayout};

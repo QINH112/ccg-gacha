@@ -11,6 +11,32 @@
  * 跑法：node tools/test_deck_editor_ui.js
  */
 
+const { spawnSync } = require("child_process");
+const path = require("path");
+
+if (!process.env.DEVICE_CASE) {
+  const cases = [
+    { width: 320, height: 568, dpr: 3, menuBottom: 68 },
+    { width: 375, height: 812, dpr: 2, menuBottom: 78 },
+    { width: 430, height: 932, dpr: 3, menuBottom: 92 }
+  ];
+  for (const item of cases) {
+    const result = spawnSync(process.execPath, [__filename], {
+      cwd: path.resolve(__dirname, ".."),
+      env: { ...process.env, DEVICE_CASE: JSON.stringify(item) },
+      encoding: "utf8"
+    });
+    if (result.stdout) process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+    if (result.status !== 0) process.exit(result.status || 1);
+  }
+  console.log("deck-editor-ui-ok cases=320x568,375x812,430x932");
+  process.exit(0);
+}
+
+const device = JSON.parse(process.env.DEVICE_CASE);
+const W = device.width;
+const H = device.height;
 const noop = () => {};
 const handlers = {};
 const renderedText = [];
@@ -51,8 +77,8 @@ const player = {
 };
 
 global.wx = {
-  getSystemInfoSync: () => ({ windowWidth: 375, windowHeight: 812, pixelRatio: 2, safeArea: { top: 20, bottom: 792 } }),
-  getMenuButtonBoundingClientRect: () => ({ bottom: 78 }),
+  getSystemInfoSync: () => ({ windowWidth: W, windowHeight: H, pixelRatio: device.dpr, safeArea: { top: 20, bottom: H - 20 } }),
+  getMenuButtonBoundingClientRect: () => ({ bottom: device.menuBottom }),
   createCanvas: () => ({ getContext: () => context, width: 0, height: 0 }),
   createImage: () => {
     const image = {};
@@ -70,7 +96,7 @@ global.wx = {
         config: { craft: { common: 40, rare: 60, epic: 100, legendary: 400 }, disassemble: { common: 5, rare: 20, epic: 100, legendary: 400 }, signIn: { firstCycle: [{ type: "ticket", amount: 50 }] } },
         signStatus: { claimedToday: true, firstCycle: true, day: 1 },
         userKey: "deck-editor-test"
-      } : { deck: { slot: 1, name: "牌组 1", cards: [], valid: false, errors: [] } }
+      } : { deck: { slot: 1, name: "牌组 1", cards: [], valid: false, errors: [] }, decks: [] }
     })
   },
   onTouchStart: callback => { handlers.touchStart = callback; },
@@ -80,7 +106,7 @@ global.wx = {
   onShow: callback => { handlers.show = callback; },
   showShareMenu: noop,
   onShareAppMessage: noop,
-  showModal: noop,
+  showModal: options => { if (options && options.success) options.success({ confirm: true }); },
   showToast: options => toastCalls.push(String((options && options.title) || "")),
   showActionSheet: noop
 };
@@ -126,9 +152,9 @@ async function tap(data) {
   assert(Math.abs(first.y - second.y) < 0.5, "前两张卡应在同一行");
   assert(second.x > first.x + first.w - 1, "第二列应紧接第一列右侧");
   for (const cell of cells) {
-    assert(cell.x >= 0 && cell.x + cell.w <= 375 + 0.5, `卡面越出屏幕：x=${cell.x} w=${cell.w}`);
+    assert(cell.x >= 0 && cell.x + cell.w <= W + 0.5, `卡面越出屏幕：x=${cell.x} w=${cell.w}`);
     assert(cell.y >= 0, `卡面越出屏幕顶部：y=${cell.y}`);
-    assert(cell.y <= 812, `卡片命中区应只出现在可视区：y=${cell.y}`);
+    assert(cell.y <= H, `卡片命中区应只出现在可视区：y=${cell.y}`);
   }
 
   // 2) 点一下加一张
@@ -209,6 +235,16 @@ async function tap(data) {
   runtime.render();
   assert(renderedText.includes("没有符合条件的卡牌"), "筛选无结果时应有提示");
   state.deckSearch = "";
+
+  // 10) 清空：点「清空」后草稿为 0 张
+  openEditor();
+  runtime.fillDeckDraft();
+  assert(runtime.deckQuantity(state.deckDraft) === 20, "清空测试前应已补满 20 张");
+  const clearHit = hitOf("clearDeck")[0];
+  assert(clearHit, "缺少清空按钮");
+  await tap({ x: clearHit.x, y: clearHit.y });
+  await settle();
+  assert(runtime.deckQuantity(state.deckDraft) === 0, `清空后应为 0 张，实际 ${runtime.deckQuantity(state.deckDraft)}`);
 
   console.log("deck-editor-ui-ok cells=", cells.length, "fill=20 curveOk filtersOk");
 })().catch(error => {
