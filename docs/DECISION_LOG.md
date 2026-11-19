@@ -29,6 +29,19 @@
 | Q7 | 五连 / 十连的符号缩略图 | **改成 3 列网格完整卡面**（每张约 104–110px 宽）。原因是 `drawCardTemplate` 在 `w<82` 时走 compact 分支只画符号，五列并排每张仅 ~60px | `game.js` 新增 `resultsLayout(count)`，导出给 `tools/test_draw_results_layout.js` 断言卡宽 ≥ 82 |
 | Q8 | 闪卡的视觉区分 | 用现成的**彩虹卡框 + 「闪」角标**，不加任何闪光/蒙层动画（沿用 D24 的教训） | `drawCardTemplate` 已有 `card.shiny` 分支；结果页补 `闪` 角标 |
 
+## 2026-11-19 用户确认（对局金币奖励）
+
+| # | 决策 | 结论 | 落地 |
+| --- | --- | --- | --- |
+| Q9 | 胜利奖励 | **随机 80–120 金币**（每次独立随机取整） | `cloudfunctions/battleGame/index.js` 的 `BATTLE_REWARD.win` |
+| Q10 | 失败奖励 | **随机 20–40 金币**；双方同时死亡（平局）按失败档发 | `BATTLE_REWARD.loss`；`grantBattleReward` 里 `tier` 区分 win/draw/loss |
+| Q11 | 认输 / 超时 / 中途退出 | 也按失败档发，但**对局时长必须超过 30 秒**（`duration <= 30000` 不发，`reason:"duration"`） | `BATTLE_REWARD.minDurationMs` |
+| Q12 | 每日上限 | 战斗金币**每日最多 2000**，超出部分截断（`reason:"cap"`），计数在 `metrics.daily.values.battleCoin` | `BATTLE_REWARD.dailyCap` |
+| Q13 | 结算界面 | 显示本局收益「+N 金币」；不满足条件时显示「对局不足 30 秒，无金币」/「今日战斗金币已达上限」 | `game.js` 的 `renderBattle()` 结算面板 |
+| Q14 | 金币用途 | 不变：商店 100 金币 = 1 张抽卡券 | 无需改动 |
+
+`grantBattleReward` 在 `logFinished()` 里只调用一次（`battleLogs` 首插成功才发奖），所以不会重复发；奖励对象写回 `game.reward`，客户端从 `battleStatus` 拿到后渲染。
+
 ## 待用户确认
 
 （当前无待确认项。2026-11-19 用户已就下列两项拍板，见下。）

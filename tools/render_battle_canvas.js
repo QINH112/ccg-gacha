@@ -213,6 +213,17 @@ async function settle() {
   fs.writeFileSync(output, canvas.toBuffer("image/png"));
   console.log(`battle-canvas-ok ${output}`);
 
+  // 结算面板样张（含金币收益）
+  runtime.state.screen = "battle";
+  runtime.state.battle = { ...game, status: "finished", result: "win", finishedAt: Date.now(), reward: { coin: 103, tier: "win", roll: 103, cap: 2000, reason: "" } };
+  runtime.state.battleSpeed = 1;
+  runtime.state.battleNotice = null;
+  runtime.render();
+  await settle();
+  const finishedFile = path.join(OUTPUT, `battle-finished-${viewport.width}x${viewport.height}.png`);
+  fs.writeFileSync(finishedFile, canvas.toBuffer("image/png"));
+  console.log(`battle-finished-ok ${finishedFile}`);
+
   // 抽卡结果页样张：单抽 / 十连各一张
   const cards = gameDataResult().cards;
   const resultCard = (value, shiny) => {
