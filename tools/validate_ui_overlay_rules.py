@@ -51,6 +51,12 @@ if "function resetOverlays(" not in source:
     failures.append("缺少 resetOverlays() 统一清理入口")
 
 
+mini = function_body("battleMini")
+if "transparentOuter:true" not in mini:
+    failures.append("battleMini 必须用 transparentOuter:true（否则战斗手牌/场上卡会多出一层底板边框）")
+if 'ctx.stroke()' in mini and "shadowColor" not in mini:
+    failures.append("battleMini 选中反馈应使用柔光，不要画硬边框")
+
 if "box(6," in detail:
     failures.append("renderCardDetail 战斗中不应给卡牌加面板/边框（2026-11-19 用户要求去掉矩形框）")
 if 'holdLabel("松手关闭"' not in detail:

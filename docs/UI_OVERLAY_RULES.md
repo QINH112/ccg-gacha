@@ -74,6 +74,14 @@
 - 禁止项：`renderCardDetail` 的战斗分支里出现 `box(6, ...)` 或 `ctx.fillRect(0,0,W,H)` 压暗战场。
 - 校验：`tools/validate_ui_overlay_rules.py` 静态断言 + `tools/smoke_game_interactions.js` 在长按松手前抓一帧填充色，断言既没有 `#0b1226ee` 面板也没有 `#02040ca8/#02040ce8` 蒙层。
 
+### 3.6 战斗内卡牌不再铺底板边框
+
+手牌与场上随从统一走 `battleMini()` → `drawCardTemplate(..., {battle:true, transparentOuter:true})`，只画卡框素材本身，不再在卡下铺一层 `box()` 底板与描边（那样会在卡外围露出一圈矩形）。和图鉴 `miniCard(..., {transparentOuter:true})` 用的是同一套规则。
+
+- 选中/可攻击的反馈改成柔光（`shadowColor` + 半透明金色填充），不画硬边框。
+- 校验：`tools/validate_ui_overlay_rules.py` 断言 `battleMini` 必须传 `transparentOuter:true`，且不允许只用描边做选中反馈。
+- 可视化：`node tools/render_battle_canvas.js` 用真实 canvas 渲染整屏，产物在 `design/review/battle-canvas-<宽>x<高>.png`。
+
 ## 4. 变更记录
 
 - 2026-11-19：战斗内卡牌详情改为面板式、取消全屏遮罩；`battleAction()` 提交前清除所有覆盖层状态。真机反馈见 `docs/BATTLE_DRAG_UPGRADE_PLAN.md` §13 D18。

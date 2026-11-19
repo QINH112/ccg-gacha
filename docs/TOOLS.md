@@ -72,6 +72,7 @@
 
 - `tools/render_balance_notice_qa.py` —— 平衡调整公告页的视觉 QA 渲染（含右侧立绘）。
 - `tools/render_battle_board_visual_qa.py`
+- `tools/render_battle_canvas.js`
 - `tools/render_battle_visual_qa.py`
 - `tools/render_card_art_visual_qa.py`
 - `tools/render_card_template_visual_qa.py`

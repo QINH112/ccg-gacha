@@ -30,7 +30,7 @@ DESIGN = resolve_design_root(ROOT)
 CHECKLIST = ROOT / "docs" / "P7_DEVICE_ACCEPTANCE_CHECKLIST.md"
 
 SECTION_ROW = re.compile(r"^\|\s*([A-F]\d)\s*\|\s*([^|]*)\|\s*([^|]*)\|\s*$")
-MARK = r"(☐|☑|☒|\[ \]|\[[xX]\])"
+MARK = r"(☐|☑|☒|\[\s*[xX\s]?\s*\])"
 RECORD_ROW = re.compile(r"^\|\s*([A-F]\d)\s*\|\s*" + MARK + r"\s*\|\s*([^|]*)\|\s*([^|]*)\|")
 SHOT_NAME = re.compile(r"manual-p7-([A-F]\d)", re.I)
 SHOT_REF = re.compile(r"manual-p7-[\w.-]+\.png")
@@ -72,7 +72,9 @@ def scan_screenshots(review: Path):
 
 
 def is_passed(mark: str) -> bool:
-    return mark in ("☑", "[x]", "[X]")
+    """`[x]`、`[ x]`、`[x ]` 都算通过——用户手打勾时经常带空格。"""
+    flat = "".join(mark.split())
+    return flat in ("☑", "[x]", "[X]")
 
 
 def set_rows(checklist: Path, ids, passed: bool, note=None, evidence=None) -> int:
