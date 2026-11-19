@@ -428,7 +428,7 @@
 ### 可实现性与回归保护
 
 - [x] 所有效果都能映射到现有引擎，或明确列出需要新增的引擎能力。（`tools/test_card_data_integrity.js`：74 张卡 + 3 个召唤物的效果全部落在引擎 action/trigger/target 词汇表内，没有未知效果）
-- [ ] AI 对目标选择、入场时机、攻击顺序和英雄伤害有可执行策略。
+- [x] AI 对目标选择、入场时机、攻击顺序和英雄伤害有可执行策略。（`tools/test_ai_behavior.js` 6 例：空场打脸、城墙优先、有能量出牌、能斩杀就斩杀、无事可做交还回合、不超过战场上限）
 - [x] 实施后能通过卡牌数据校验、云函数语法检查和战斗规则测试。（`validate_card_art_subpackages.py`、`validate_cloudfunctions.py`、`test_battle_engine.js` 均在 `docs/RELEASE_CHECKLIST.md` 第 3 步）
 - [x] 实施后至少覆盖：关键词单测、触发顺序测试、极端组合测试、20 张牌组实战测试。（关键词与触发顺序见 `test_battle_engine.js` 24 例；极端组合见 `test_card_data_integrity.js` 与 `smoke_render_budget.js`；20 张牌组见 `test_deck_rules.js`、`test_deck_save.js`、`test_battle_snapshot.js`）
 - [x] 老玩家收藏使用相同卡牌 ID，更新后不丢卡、不重复发卡。（`tools/test_cloud_data_compatibility.js` 断言 74 张卡迁移后库存按 ID 保留；`tools/test_legacy_account.js` 断言旧存档库存与牌组不被改写）

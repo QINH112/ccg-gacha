@@ -23,6 +23,7 @@
 - `tools/smoke_service_interactions.js`
 - `tools/smoke_service_scrolling.js`
 - `tools/test_admin_crud.js` —— 管理端写入契约审计：adminGame 是唯一能直接改「邮件/任务/调整公告/卡牌/玩家资源」的入口，
+- `tools/test_ai_behavior.js`
 - `tools/test_balance_notice_accuracy.js` —— 平衡公告「前后对比」准确性校验：
 - `tools/test_balance_notices.js`
 - `tools/test_battle_engine.js`
