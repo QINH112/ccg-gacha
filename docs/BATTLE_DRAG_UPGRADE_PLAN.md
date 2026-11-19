@@ -639,3 +639,13 @@ git diff --check
 - 新发现的需求不得只存在于聊天中，必须补充到“已确认需求”或执行记录。
 - 若计划与实际代码不一致，以源码和测试证据为准，并立即修正文档。
 - 若阻塞，停止扩展改动并记录：已尝试路径、测试/日志证据、明确阻塞点、受影响文件和需要用户提供的单一关键输入。
+
+### D27 战场与手牌布局重排（2026-11-20）
+
+用户真机反馈「手牌只能显示 5 张半」「战场随从太小」。
+
+- 随从区改为按可用高度自适应：`boardSpan=(heroY-20)-enemyY`、`boardCh=clamp(floor((boardSpan-76)/2),54,126)`、`boardCw=round(boardCh/1.38)`；7 只随从时按 `step=min(cw+4,(W-24-cw)/(n-1))` 叠放，不再挤成 40px 宽。
+- 手牌改成扇形叠放：`handCw=min(66,round(W*.16))`、`handStep=min(handCw+4,(viewW-handCw)/(n-1))`、整行居中；10 张牌不再横向滚动，全部落在屏内。
+- 关键词标签由最多两行改为单行 `labels.slice(0,4).join("·")`，避免压住「— 星界战场 —」与英雄面板。
+- 行动失败提示：`cleanCloudMessage()` 去掉 `at performAttack (/var/user/index.js:…)` 这类栈帧；`该随从…`/`当前不是你的回合` 这类可自愈的失败只静默 `resyncBattle()`，不再弹提示条。
+- 回归：`smoke_battle_drag_interactions` 的坐标全部改为从 `state.battleZones` / 新增的 `state.battleHandHits` 推导，不再硬编码像素；15 场景、全套件 `js_fail=0`。

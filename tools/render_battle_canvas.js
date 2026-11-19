@@ -205,6 +205,11 @@ async function settle() {
   runtime.state.showCardDetail = false;
   runtime.state.cards = gameDataResult().cards;
   runtime.state.sets = gameDataResult().sets;
+  const handCount = Number(process.argv[3]) || 0;
+  if (handCount > 0) {
+    runtime.state.battle.player.hand = gameDataResult().cards.slice(0, handCount).map(card => ({ ...card, instanceId: `hand-${card.id}`, canAttack: false, attacksLeft: 0 }));
+    runtime.state.battle.player.handCount = handCount;
+  }
   runtime.render();
   await settle();
 

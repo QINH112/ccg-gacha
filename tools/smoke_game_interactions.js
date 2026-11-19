@@ -135,7 +135,8 @@ async function settle() {
   if (!renderedText.some(value => /^更换 [1-4] 张牌$/.test(value))) throw new Error("Mulligan selection count was not rendered");
   tap(196, 415);
   await settle();
-  await hold(30, 720);
+  const handHit = (runtime.state.battleHandHits || [])[0];
+  await hold(Math.round(handHit.x + handHit.w / 2), Math.round(handHit.y + handHit.h / 2));
   if (!cloudCalls.includes("battleGame:mulligan")) throw new Error("Mulligan action was not reached");
   // 战斗内长按走 battleHold 分支：只显示「松手关闭」，不显示分解/合成按钮（见 docs/UI_OVERLAY_RULES.md）
   if (!renderedText.includes("松手关闭") && !renderedText.includes("点击卡牌外关闭")) throw new Error("Long-press card detail was not rendered");
