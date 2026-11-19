@@ -4,6 +4,7 @@
 > 截图命名：`manual-p7-<编号>-<机型>-<日期>.png`，全部放 `D:\kaifa\design\review\`。
 > 截好之后在工程目录执行 `node tools/write_p7_evidence.js`，会把 `manual-p7-*.png` 与 `mask-diag-*.png` 一起登记进 `p7-evidence-manifest.json` 的 `deviceEvidence`；`node tools/validate_release_readiness.js` 的输出里会显示 `device=N`。
 > 记录头：机型、系统版本、微信版本、基础库版本、是否真机调试模式。
+> **2026-11-19 全部通过**（29/29，vivo x200s）。后续客户端改动请重测相关条目，用 `--uncheck` 把受影响的条目退回。
 > 随时跑 `py tools/p7_evidence_status.py` 看进度：它会列出还没过的编号、哪些已经有截图待确认、哪些连截图都没有（`--selftest` 自检解析逻辑）。
 > **怎么勾**：记录表里 `[ ]` 是未通过、`[x]` 是通过（纯文本，任何编辑器都能直接改，Word 里也能查找替换）。
 > 不想手改就用命令行：`py tools/p7_evidence_status.py --check B7 --note "预览模式下连出 5 张牌，无泛光"`；撤销用 `--uncheck B7`。
@@ -95,7 +96,7 @@
 | B5 | [x ] | | |
 | B6 | [ x] | | |
 | B7 | [x] | 2026-11-19 | 用户实测确认：重新预览后出牌/攻击不再出现金光与蒙层 |
-| B8 | [ ] | | |
+| B8 | [x] |  | 2026-11-19 真机确认：手牌与场上卡外围无底板，选中为柔光 |
 | C1 | [x ] | | |
 | C2 | [x ] | | |
 | C3 | [x ] | 立绘已于 2026-11-19 补实现（90c7193）；等真机看过数值与立绘再勾 |  |

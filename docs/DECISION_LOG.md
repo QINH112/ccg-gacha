@@ -48,7 +48,7 @@
 
 ## 待办衔接
 
-- 真机验收：按 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` 的 A–F 共 29 条逐项执行，当前 `devices=28 passed=1 pending=27`（`py tools/p7_evidence_status.py`）。
+- 真机验收：按 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md` 的 A–F 共 29 条逐项执行；**2026-11-19 已全部通过**（`devices=29 passed=29 pending=0`，`py tools/p7_evidence_status.py`）。后续客户端改动需重测相关条目。
 - 全通过后刷新证据：`node tools/write_p7_evidence.js` → `node tools/validate_release_readiness.js`。
 
 ## 验收清单结清进度（2026-11-19）

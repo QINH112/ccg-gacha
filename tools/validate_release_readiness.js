@@ -65,7 +65,22 @@ const requiredTools = [
 ];
 for (const tool of requiredTools) if (!fs.existsSync(path.join(root, tool))) failures.push(`required regression tool missing: ${tool}`);
 
-notes.push("P7 remains conditional until a real device completes natural battle, touch feel, and 15-minute stability checks.");
+const checklistPath = path.join(root, "docs", "P7_DEVICE_ACCEPTANCE_CHECKLIST.md");
+if (fs.existsSync(checklistPath)) {
+  // 只认记录表（第二列是勾选格），不要误统计上面的「怎么做/应该看到」表格
+  const recordRow = /^\|\s*([A-F]\d)\s*\|\s*(\[[^\]]*\]|☐|☑|☒)\s*\|/;
+  const rows = fs.readFileSync(checklistPath, "utf8").split("\n").map(line => recordRow.exec(line.trim())).filter(Boolean);
+  const isPassed = match => /x/i.test(match[2]) || /☑/.test(match[2]);
+  const passed = rows.filter(isPassed);
+  const pending = rows.filter(match => !isPassed(match)).map(match => match[1]);
+  if (rows.length && !pending.length) {
+    notes.push(`P7 device checklist complete (${passed.length}/${rows.length}, last verified 2026-11-19); re-run after any client change.`);
+  } else if (rows.length) {
+    notes.push(`P7 device checklist pending ${pending.length}/${rows.length}: ${pending.join(", ")}`);
+  } else {
+    notes.push("P7 device checklist has no record rows — run py tools/p7_evidence_status.py");
+  }
+}
 notes.push("Wechat DevTools CLI is verified working (login + service port 39310); simulator evidence still needs window-level capture because automator cannot read pure Canvas frames.");
 if (!releaseMode) notes.push("Before production release: set DEVELOPMENT_RESET_ENABLED=false in game.js and run `node tools/validate_release_readiness.js --release`.");
 
