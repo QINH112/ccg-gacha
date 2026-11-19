@@ -39,6 +39,16 @@ dateKey status:"pending"  deleted:false  createdAt  updatedAt
 - 图片尺寸用 `wx.createImage()` 读（小游戏基础库里没有 `wx.getImageInfo`，用它会报 `wx.getImageInfo is not a function`）。
 - 字数不足时：计数器显示 `2/200（至少 5 字）`，提交按钮置灰并显示「还差 N 个字」。
 
+## 保留期与自动清理
+
+反馈**只保留 7 天**，到期由云函数定时触发器真删（数据库记录 + 云存储截图一起删），开发期不堆数据。
+
+- `mine` 只返回 7 天内的记录（`createdAt >= now - 7 天`）。
+- `cleanup` action：按 `createdAt` 升序取最多 100 条过期记录，逐条 `doc(id).remove()`，再 `cloud.deleteFile({ fileList })` 删截图；返回 `{removed, files, cutoff}`，日志打 `feedback-cleanup`。
+- `cloudfunctions/feedbackService/config.json` 声明定时触发器：每天 **04:00（Asia/Shanghai）** 触发一次（cron `0 0 4 * * * *`）。事件没有 `action` 且 `Type === "Timer"` 时直接走 `cleanup`。
+- 单次最多清 100 条；如果积压更多，第二天继续清。
+- 文档里也给了 `{action:"cleanup"}`，可以手动在云开发控制台「云端测试」触发一次。
+
 ## 云函数
 
 `cloudfunctions/feedbackService`（新增），`action`：
@@ -61,4 +71,5 @@ node tools/render_feedback.js 375x812 mine  # 我的反馈样张
 ## 部署顺序
 
 1. 开发者工具里「上传并部署」`cloudfunctions/feedbackService`（首次部署前先在云开发控制台建 `feedbacks` 集合，权限选「仅创建者可读写」）。
+2. 因为新增了 `config.json` 定时触发器，上传时选「上传并部署：云端安装依赖」后，右键该云函数选「上传触发器」，确认控制台里出现 `feedbackCleanup`。
 2. 重新「预览」扫码，邮箱页右上角出现「意见反馈」。

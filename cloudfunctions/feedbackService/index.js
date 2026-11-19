@@ -11,6 +11,13 @@ const CONTENT_MAX = 200;
 const CONTACT_MAX = 40;
 const DAILY_LIMIT = 1;
 const CONTEXT_FIELDS = ["version", "model", "system", "screen", "battleId"];
+/** 反馈只保留 7 天，过期由定时触发器真删（含截图文件） */
+const RETENTION_DAYS = 7;
+const RETENTION_MS = RETENTION_DAYS * 24 * 3600 * 1000;
+
+function retentionCutoff(now) {
+  return Number(now || Date.now()) - RETENTION_MS;
+}
 
 /** 北京时间的自然日，作为每日额度的口径（与签到一致） */
 function dateKey(now) {
@@ -95,7 +102,7 @@ async function submit(openid, event) {
 async function mine(openid, event) {
   const limit = Math.min(30, Math.max(1, Number(event && event.limit) || 20));
   const result = await db.collection("feedbacks")
-    .where({ userId: openid, deleted: false })
+    .where({ userId: openid, deleted: false, createdAt: db.command.gte(retentionCutoff()) })
     .orderBy("createdAt", "desc")
     .limit(limit)
     .get();
@@ -124,13 +131,49 @@ async function remove(openid, event) {
   return { ok: true, dateKey: doc.dateKey };
 }
 
+
+/**
+ * 真删超过 7 天的反馈（含云存储里的截图），由定时触发器每天调用。
+ * 单次最多清 100 条，返回实际删除数量，方便看日志。
+ */
+async function cleanup(event) {
+  const now = Date.now();
+  const cutoff = retentionCutoff(now);
+  const result = await db.collection("feedbacks")
+    .where({ createdAt: db.command.lt(cutoff) })
+    .orderBy("createdAt", "asc")
+    .limit(100)
+    .get();
+  const docs = result.data || [];
+  if (!docs.length) return { removed: 0, files: 0, cutoff };
+  const ids = docs.map(item => item._id || item.id).filter(Boolean);
+  const fileList = docs.map(item => item.imageFileID).filter(value => typeof value === "string" && value.indexOf("cloud://") === 0);
+  for (const id of ids) {
+    await db.collection("feedbacks").doc(id).remove();
+  }
+  let files = 0;
+  if (fileList.length && typeof cloud.deleteFile === "function") {
+    try {
+      await cloud.deleteFile({ fileList });
+      files = fileList.length;
+    } catch (error) {
+      console.log("feedback-cleanup-file-failed", JSON.stringify({ count: fileList.length, message: String((error && error.message) || error) }));
+    }
+  }
+  console.log("feedback-cleanup", JSON.stringify({ removed: ids.length, files, cutoff }));
+  return { removed: ids.length, files, cutoff };
+}
+
 exports.main = async event => {
   const { OPENID } = cloud.getWXContext();
-  const action = text(event && event.action, 16) || "submit";
+  const rawAction = text(event && event.action, 16);
+  if (!rawAction && event && event.Type === "Timer") return cleanup(event);
+  const action = rawAction || "submit";
   if (action === "submit") return submit(OPENID, event || {});
   if (action === "mine") return mine(OPENID, event || {});
   if (action === "remove") return remove(OPENID, event || {});
+  if (action === "cleanup") return cleanup(event || {});
   throw new Error("反馈操作无效");
 };
 
-exports.__test = { TYPES, TYPE_LABEL, dateKey, cleanContext, cleanContent, cleanType, CONTENT_MIN, CONTENT_MAX, DAILY_LIMIT };
+exports.__test = { TYPES, TYPE_LABEL, dateKey, cleanContext, cleanContent, cleanType, CONTENT_MIN, CONTENT_MAX, DAILY_LIMIT, RETENTION_DAYS, RETENTION_MS, retentionCutoff, cleanup };

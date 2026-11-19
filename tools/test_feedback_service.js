@@ -48,24 +48,46 @@ const collection = name => {
         records(name).set(id, { ...value, ...data });
         return {};
       },
+      async remove() {
+        records(name).delete(id);
+        return {};
+      },
     }),
   };
 };
 
+const command = {
+  gte: value => ({ __op: "gte", value }),
+  lt: value => ({ __op: "lt", value })
+};
+
 function matches(row, filter) {
-  return Object.entries(filter || {}).every(([key, value]) => row[key] === value);
+  return Object.entries(filter || {}).every(([key, value]) => {
+    if (value && typeof value === "object" && value.__op) {
+      if (value.__op === "gte") return Number(row[key]) >= Number(value.value);
+      if (value.__op === "lt") return Number(row[key]) < Number(value.value);
+      return false;
+    }
+    return row[key] === value;
+  });
 }
 
 let currentUser = "player-a";
 const originalLoad = Module._load;
+let sdk = null;
 Module._load = function(request, parent, isMain) {
   if (request === "wx-server-sdk") {
-    return {
+    return (sdk = {
       init() {},
       DYNAMIC_CURRENT_ENV: "test",
-      database: () => ({ collection }),
+      database: () => ({ collection, command }),
       getWXContext: () => ({ OPENID: currentUser }),
-    };
+      deletedFiles: [],
+      async deleteFile({ fileList }) {
+        this.deletedFiles.push(...fileList);
+        return { fileList };
+      }
+    });
   }
   return originalLoad(request, parent, isMain);
 };
@@ -133,7 +155,7 @@ test("accepts cloud file id only", async () => {
 
 test("mine returns only the caller records, counting today separately", async () => {
   currentUser = "player-e";
-  records("feedbacks").set("old-one", { userId: "player-e", type: "suggestion", content: "昨天的建议", dateKey: "2000-01-01", deleted: false, createdAt: 1 });
+  records("feedbacks").set("old-one", { userId: "player-e", type: "suggestion", content: "昨天的建议", dateKey: "2000-01-01", deleted: false, createdAt: Date.now() - 3600000 });
   records("feedbacks").set("other-user", { userId: "player-z", type: "bug", content: "别人的反馈", dateKey: "2000-01-01", deleted: false, createdAt: 2 });
   const mine = await feedback.main({ action: "mine" });
   assert.deepEqual(mine.items.map(item => item.content), ["昨天的建议"]);
@@ -166,6 +188,42 @@ test("date key follows beijing natural day", async () => {
   const night = Date.UTC(2026, 10, 20, 17, 30); // 北京次日 01:30
   assert.equal(dateKey(morning), "2026-11-20");
   assert.equal(dateKey(night), "2026-11-21");
+});
+
+
+cases.push({
+  name: "keeps only seven days and deletes expired with files",
+  async run() {
+    currentUser = "player-retention";
+    const { RETENTION_MS } = feedback.__test;
+    const oldId = "feedback-old-1";
+    records("feedbacks").set(oldId, {
+      userId: "player-retention",
+      type: "bug",
+      typeLabel: "BUG/故障",
+      content: "这是八天前的老反馈",
+      contact: "",
+      imageFileID: "cloud://old/shot.jpg",
+      context: {},
+      dateKey: "2026-11-12",
+      status: "pending",
+      deleted: false,
+      createdAt: Date.now() - RETENTION_MS - 3600000,
+      updatedAt: Date.now() - RETENTION_MS - 3600000
+    });
+    const mineAfterOld = await feedback.main({ action: "mine" });
+    assert.strictEqual(mineAfterOld.items.some(item => item.id === oldId), false, "超过 7 天的反馈不应出现在我的列表里");
+
+    const fresh = await feedback.main({ action: "submit", type: "bug", content: "今天的新反馈", context: {} });
+    const cleanupResult = await feedback.main({ action: "cleanup" });
+    assert.ok(cleanupResult.removed >= 1, `应至少清掉 1 条过期反馈，实际 ${cleanupResult.removed}`);
+    assert.strictEqual(records("feedbacks").has(oldId), false, "过期记录应被物理删除");
+    assert.strictEqual(records("feedbacks").has(fresh.feedback.id), true, "7 天内的新反馈不能删");
+    assert.strictEqual(sdk.deletedFiles.includes("cloud://old/shot.jpg"), true, "应同时删除云存储里的截图");
+
+    const timerResult = await feedback.main({ Type: "Timer" });
+    assert.strictEqual(timerResult.removed, 0, "没有过期数据时定时清理应删 0 条");
+  }
 });
 
 (async () => {
