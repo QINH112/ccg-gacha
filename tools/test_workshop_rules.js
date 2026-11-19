@@ -36,7 +36,7 @@ const USER = "workshop-user";
 const originalLoad = Module._load;
 Module._load = function(request, parent, isMain) {
   if (request === "wx-server-sdk") {
-    const database = { collection, runTransaction: async callback => callback({ collection }) };
+    const database = { collection, runTransaction: async callback => { if (global.__failOnce) { global.__failOnce = false; throw new Error("errCode: -501001 resource system error"); } return callback({ collection }); } };
     return { init() {}, DYNAMIC_CURRENT_ENV: "test", database: () => database, getWXContext: () => ({ OPENID: USER }) };
   }
   return originalLoad(request, parent, isMain);
@@ -182,6 +182,15 @@ async function rejects(promise, pattern, label) {
   assert.equal(reAdjusted.player.dust, 9, "再次调整后应按最新公告原价 9 返还");
   records("balanceNotices").delete("notice-c001");
   records("balanceNotices").delete("notice-c001-new");
+
+  // 并发写冲突（-501001）应自动重试一次并成功
+  {
+    seed(player({ inventory: [{ cardId: "c001", normalCount: 1, shinyCount: 0 }], dust: 0 }));
+    global.__failOnce = true;
+    const result = await workshop.main({ action: "disassemble", cardId: "c001", shiny: false });
+    assert.equal(result.player.dust, 5, "-501001 后应重试并正常返还 5 星尘");
+    assert.equal(global.__failOnce, false, "重试标记应被消耗");
+  }
 
   console.log("workshop rules passed: craft-cap, dust, disassemble(1x/3x/adjusted/expired/renewed), shiny-3, over-cap-inventory");
 })().catch(error => {

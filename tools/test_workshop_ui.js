@@ -226,6 +226,21 @@ function openDetail(cardId, shiny) {
   assert(!renderedText.some(text => text.includes("5星尘")), "不应再显示旧的 5 星尘");
   state.balanceNotices = { items: [] };
 
+  // 连点分解只下发一次请求（400ms 冷却 + 飞行中拦截）
+  {
+    openDetail("c001", false);
+    await settle();
+    const before = cloudCalls.filter(name => name.startsWith("workshop:")).length;
+    const hit = state.hit.find(item => item.id === "cardAction");
+    assert(hit, "详情页应有分解/合成按钮");
+    tap(hit.x + 4, hit.y + 4);
+    tap(hit.x + 4, hit.y + 4);
+    tap(hit.x + 4, hit.y + 4);
+    await settle(4);
+    const after = cloudCalls.filter(name => name.startsWith("workshop:")).length;
+    assert(after - before === 1, `连点三次只应下发一次工坊请求，实际 ${after - before}`);
+  }
+
   console.log("workshop-ui-test-ok", cloudCalls.join(","));
 })().catch(error => {
   console.error(error);

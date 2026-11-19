@@ -307,6 +307,11 @@ shinyDisassembleValue = normalDisassembleValue × 3
 
 - 2026-11-19 追加：详情页「分解」按钮原来直接显示 `config.disassemble[rarity]`（普通 5），与服务端调整期返还（40）不一致，属于展示 bug。现改为 `game.js` 的 `disassembleValue(card, shiny)`：先查生效中的公告（`activeBalanceAdjustment`），命中则取 `originalCraftCost` → 合成价，未命中才用分解价，闪卡 ×3；`tools/test_workshop_ui.js` 加了「无公告 5 / 有公告 40 / 闪卡 120 / 详情页文案」四条断言。
 
+- 2026-11-19 追加：连点分解/合成会出现 `document.set:fail -501001 resource system error.`。原因是客户端允许同一动作并发下发，多个事务同时写 `gameSaves` 同一文档，微信云数据库直接抛资源错误。
+  - 客户端：`doWorkshop()` 加 `state.workshopBusy`（请求未完成时忽略后续点击，结束自动释放），错误文案 `-501001 / resource system error` 统一显示为「操作太频繁，请稍后再试」。
+  - 服务端：`cloudfunctions/workshop/index.js` 的 `withTransaction()` 对 `-501001 / 写冲突` 自动重试最多 3 次（120ms、240ms 退避）。
+  - 回归：`tools/test_workshop_rules.js` 模拟首次事务抛 `-501001` 后重试成功；`tools/test_workshop_ui.js` 连点三次只允许一次 `workshop:*` 请求。
+
 ## 文档与实现的不一致（待用户确认）
 
 1. **分解是否需要确认弹窗**：本计划 `:268-283` 记「分解无确认弹窗」，但 `game.js` 的 `doWorkshop()` 对 `disassemble` 仍走 `wx.showModal` 二次确认。以哪个为准待定；未擅自改行为。
