@@ -58,3 +58,6 @@ exports.battleGeneralSkill = () => callFunction("battleGame", { action:"generalS
 exports.battleEndTurn = () => callFunction("battleGame", { action:"endTurn" });
 exports.battleConcede = () => callFunction("battleGame", { action:"concede" });
 exports.battleHistory = () => callFunction("battleGame", { action:"history" });
+exports.submitFeedback = payload => callFunction("feedbackService", { action: "submit", ...payload });
+exports.loadMyFeedback = () => callFunction("feedbackService", { action: "mine" });
+exports.removeFeedback = id => callFunction("feedbackService", { action: "remove", id });

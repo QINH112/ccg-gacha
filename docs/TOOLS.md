@@ -44,6 +44,8 @@
 - `tools/test_deck_save.js`
 - `tools/test_draw_pity.js` —— 抽卡概率与保底逻辑审计：直接跑 cloudfunctions/drawCards/index.js 的 exports.main，
 - `tools/test_draw_results_layout.js`
+- `tools/test_feedback_service.js` —— 意见反馈服务端回归（docs/PLAYER_FEEDBACK.md）：
+- `tools/test_feedback_ui.js`
 - `tools/test_game_services.js`
 - `tools/test_legacy_account.js`
 - `tools/test_loading_feedback.js`
@@ -85,6 +87,7 @@
 - `tools/render_collection.js`
 - `tools/render_collection_card_art_qa.py`
 - `tools/render_deck_editor.js`
+- `tools/render_feedback.js`
 - `tools/render_home_visual_qa.py`
 - `tools/render_service_visual_qa.py`
 

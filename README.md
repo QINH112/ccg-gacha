@@ -166,6 +166,8 @@ node tools/test_workshop_rules.js
 node tools/test_workshop_ui.js
 node tools/test_deck_rules.js
 node tools/test_deck_editor_ui.js
+node tools/test_feedback_service.js
+node tools/test_feedback_ui.js
 node tools/test_deck_editor_consistency.js
 node tools/test_deck_save.js
 node tools/test_legacy_account.js

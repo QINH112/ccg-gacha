@@ -117,3 +117,9 @@ py tools/p7_evidence_status.py                       # 真机验收还差哪几�
 - 修复一：攻击循环改成每轮按 `instanceId` 从**当前** `ai.board` 重新取随从，取不到就跳过。
 - 修复二：`start()` 里 `processTimeout` 包 try/catch，结算失败时把残留对局标为 `expired` 并继续开新局（并打 `battle-start-timeout-failed` 日志），不再让一个坏残留局堵死入口。
 - 回归：`tools/test_battle_start.js` 增至两段——正常开局 + 「残留对局结算抛错仍能开新局」（`board: null` 制造 TypeError，断言 `battle-start-recovery-ok`）。
+
+## 五、意见反馈（2026-11-20）
+
+- 功能：邮箱页右上「意见反馈」，5 类、5–200 字、每日 1 条、可带 1 张截图、可看/删自己的历史。
+- 云函数：`cloudfunctions/feedbackService`（submit / mine / remove）。**需要你上传部署**，并在云开发控制台建 `feedbacks` 集合（权限：仅创建者可读写）。
+- 规格与决策见 `docs/PLAYER_FEEDBACK.md`。
