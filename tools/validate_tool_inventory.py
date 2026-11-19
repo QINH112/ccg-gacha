@@ -6,6 +6,9 @@
 2. 文档里列出的每个 `tools/xxx` 都必须真实存在（防止删了脚本没删文档）。
 3. 文档必须由生成器生成（首段包含「由 py tools/gen_tools_doc.py 生成」）。
 
+另外核对 `docs/RELEASE_CHECKLIST.md` 里引用的每个 `tools/xxx` 都真实存在，
+防止清单里留着已经被删掉或改名的命令。
+
 不一致时提示重跑 `py tools/gen_tools_doc.py`。
 """
 
@@ -37,6 +40,13 @@ def main():
         failures.append("以下脚本没有写进 docs/TOOLS.md：" + ", ".join(missing))
     if stale:
         failures.append("docs/TOOLS.md 列了不存在的脚本：" + ", ".join(stale))
+    checklist = ROOT / "docs" / "RELEASE_CHECKLIST.md"
+    if checklist.is_file():
+        referenced = set(re.findall(r"`?tools/([\w.]+\.(?:js|py))`?", checklist.read_text(encoding="utf-8")))
+        dangling = sorted(referenced - actual)
+        if dangling:
+            failures.append("docs/RELEASE_CHECKLIST.md 引用了不存在的脚本：" + ", ".join(dangling))
+
     if "gen_tools_doc.py" not in text:
         failures.append("docs/TOOLS.md 缺少生成器说明（应写「由 py tools/gen_tools_doc.py 生成」）")
 

@@ -341,6 +341,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/capture_devtools_windo
 - `tools/validate_runtime_budget.py` 里的 `previewTotal` / `main` 在有分包时可能显示 0，这是脚本的统计口径问题，不代表包体为空；判断包体请用上表数字。
 - 主包 73% 已用，剩下约 1.1 MB 空间：新增主包资源前先跑 `validate_package_limits.py`，超过 90% 会打印 `package-limits-warn`。
 
+## 发布检查单
+
+上传体验版/正式版前按 [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md) 逐条过：素材构建 → 全量自动化 → 发布审计（含 `DEVELOPMENT_RESET_ENABLED` 开关）→ 包体硬限制 → 云函数上传顺序 → 真机 / P7 清单。
+
 ## 当前状态
 
 交接说明与待办见 `docs/HANDOFF.md`；产品决策记录见 `docs/DECISION_LOG.md`。

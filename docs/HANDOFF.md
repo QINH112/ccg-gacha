@@ -42,6 +42,8 @@ Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-1
 
 ## 三、常用命令
 
+要发版时不用记顺序，直接走 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)（7 步，45 条可复制命令）。
+
 ```bash
 cd D:\kaifa\astral-ccg-gacha
 node --expose-gc tools/test_battle_engine.js        # 24 个引擎用例
