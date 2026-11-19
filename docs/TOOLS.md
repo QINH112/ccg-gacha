@@ -31,6 +31,7 @@
 - `tools/test_cloud_data_compatibility.js`
 - `tools/test_cloud_security.js` —— 服务端安全边界审计：
 - `tools/test_collection_filters.js`
+- `tools/test_collection_layout.js`
 - `tools/test_deck_rules.js` —— 牌组合法性校验回归（服务端 validateDeck）：
 - `tools/test_draw_pity.js` —— 抽卡概率与保底逻辑审计：直接跑 cloudfunctions/drawCards/index.js 的 exports.main，
 - `tools/test_game_services.js`
