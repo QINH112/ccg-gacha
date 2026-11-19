@@ -81,6 +81,7 @@
 
 ## 其他
 
+- `tools/check_card_art_edges.py` —— 卡牌母版「白边 / 浅色边」检测。
 - `tools/design-root.js`
 - `tools/gen_tools_doc.py` —— 生成 docs/TOOLS.md：把 tools/ 下的脚本按用途分组列出来。
 - `tools/p7_evidence_status.py` —— P7 真机验收进度助手。

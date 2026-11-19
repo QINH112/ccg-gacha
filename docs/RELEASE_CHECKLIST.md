@@ -38,6 +38,7 @@ py tools/validate_runtime_budget.py
 ```
 
 - [ ] `validate_card_art_subpackages` 的 `cards=` 等于当前卡牌总数（现在是 74）
+- [ ] `py tools/check_card_art_edges.py` 没有新增的「明确白边」项（已知 3 张：`c008`/`r008`/`s008`；`c025` 为临界待确认）
 - [ ] **未列入 `art-config.json` 的 ID，下次构建会被从分包里删掉**——加卡时别忘了
 
 ---
