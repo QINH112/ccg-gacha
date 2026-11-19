@@ -17,7 +17,7 @@
 
 ## 二、等你动手的三件事
 
-1. **重新预览 + 重传云函数**：客户端改了什么必须重新「预览」扫码才上手机；`cloudfunctions/workshop`（合成上限改 9 张）需要重新上传，否则手机上仍是 2 张上限。
+1. ~~**重新预览 + 重传云函数**~~ → **用户 2026-11-19 表示已解决**（已重新上传 `cloudfunctions/workshop`、已重新预览；手机上合成上限应为 9 张）。今后客户端每次改动仍需重新「预览」扫码才上手机。
 2. **Q3 未决**：闪卡要不要做稀有度上限？当前代码**完全没有闪卡上限**（只受「3 张普通卡」约束，`gameConfig` 里也没有 `shinyLimit` 字段）。验收清单里 3 条依赖这个答案，见 `docs/CARD_COLLECTION_WORKSHOP_MERGE_PLAN.md` §7.3 与 `docs/DECISION_LOG.md`。
 3. **真机外观验收（17 条）与 3 张素材瑕疵**：真机项见 `docs/P7_DEVICE_ACCEPTANCE_CHECKLIST.md`（B 组已过，剩余是工坊/图鉴布局与对局手感）；素材瑕疵 `base/c008`、`base/r008`、`star-remnant/s007` 需启动 ComfyUI 重绘，按你的要求先放着。
 
