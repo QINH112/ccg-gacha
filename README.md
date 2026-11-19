@@ -165,6 +165,7 @@ node tools/test_balance_notice_art.js
 node tools/test_workshop_rules.js
 node tools/test_workshop_ui.js
 node tools/test_deck_rules.js
+node tools/test_deck_editor_ui.js
 node tools/test_deck_save.js
 node tools/test_legacy_account.js
 node tools/test_ai_behavior.js
