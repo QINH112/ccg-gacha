@@ -91,10 +91,12 @@ const runtime = require("../game.js").__test;
 const state = runtime.state;
 
 const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 (async () => {
   await settle();
   await settle();
+  await wait(600); // 等卡框/立绘真正 load，样张才和真机一致
 
   const listMode = process.argv[3] === "list";
   const buildDeck = (name, skill, size) => {

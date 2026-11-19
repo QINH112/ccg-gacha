@@ -99,3 +99,9 @@ node tools/render_deck_editor.js 375x812
 - 右侧按钮：有牌时「编辑」，空槽位「新建」。
 
 样张：`node tools/render_deck_editor.js 375x812 list` → `design/review/deck-list-375x812.png`。
+
+## 卡面尺寸与文字（2026-11-20）
+
+- 所有卡面按卡框贴图 512×768 的比例绘制（`const CARD_RATIO = 768/512`），牌组网格 `ch = cw * CARD_RATIO`。
+- 卡面说明文字：字号 `max(7, w * 0.062)`、行高 `max(8, h * 0.045)`、最多 2 行；起始 `y + h*0.645`，保证不压底部攻/血徽章。
+- 样张渲染器在 `render()` 前 `wait(600)`，等卡框与立绘真正 load，否则出的是程序化兜底样式，和真机不一致。

@@ -123,3 +123,14 @@
 | Q34 | 图鉴页要不要显示星尘余额 | 要，放在标题行「已收集 X / Y 种 · 星尘 N」，不额外占一行 |
 
 实现：`renderCollection()` 的 `header()` 副标题改为 `已收集 ${owned} / ${state.cards.length} 种 · 星尘 ${state.player.dust||0}`；新增 `tools/render_collection.js` 出样张 `design/review/collection-<宽>x<高>.png`；`tools/smoke_collection_navigation.js` 增加断言「图鉴标题必须含星尘数字」。
+
+## 卡面宽高比与说明文字（2026-11-20，Q35）
+
+用户反馈：「模拟器里收藏卡牌正常，实机显示不完整」。根因：牌组网格用 `ch=cw*1.42`、卡框贴图实际是 512×768（1.5），真机走 `drawOriginalCardTemplate` 时卡面被纵向压扁；且说明文字行高按 `h*.035`（≈5.6px）算，真机上挤成一条看不清。
+
+| 编号 | 问题 | 决定 |
+| --- | --- | --- |
+| Q35 | 卡面统一按什么比例 | 全部按卡框贴图 512×768（`const CARD_RATIO=768/512`），不再各处写 1.42/1.38/1.48 |
+| Q36 | 卡面说明文字字号 | 字号 `max(7, w*6.2%)`、行高 `max(8, h*4.5%)`、最多 2 行（大卡 4 行），底线不压攻/血徽章 |
+
+改动：`game.js` 新增 `CARD_RATIO`；牌组网格、抽卡结果、战斗随从宽度统一用它；`drawOriginalCardTemplate` 与程序化模板的 `wrapText` 参数同步收紧；`tools/render_deck_editor.js` 渲染前 `wait(600)` 等卡框/立绘真正 load，样张才和真机一致。

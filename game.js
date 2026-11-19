@@ -136,7 +136,7 @@ function drawOriginalCardTemplate(card,x,y,w,h,p,options){
   const battle=Boolean(options&&options.battle),statSize=battle?Math.max(8,w*.14):Math.max(11,w*.09),costSize=battle?Math.max(8,w*.13):Math.max(12,w*.095);
   text(card.cost==null?"":card.cost,x+w*.177,y+h*.195,costSize,"#3b3150","center",800);
   if(!battle)text(fit(card.name,w*.68,Math.max(9,w*.078)),x+w*.5,y+h*.59,Math.max(9,w*.078),"#483544","center",800);
-  const effect=card.rulesText||card.description||"",showRules=!battle&&h>=145;if(showRules&&effect)wrapText(effect,x+w*.245,y+h*.655,w*.52,Math.max(10,h*.035),Math.max(7,w*.047),"#533f4c",h>=350?4:2,false);
+  const effect=card.rulesText||card.description||"",showRules=!battle&&h>=130;if(showRules&&effect)wrapText(effect,x+w*.245,y+h*.645,w*.52,Math.max(8,h*.045),Math.max(7,w*.062),"#533f4c",h>=350?4:2,false);
   const attackBase=Number(card.printedAttack==null?card.baseAttack:card.printedAttack),healthBase=Number(card.printedHealth==null?card.baseHealth:card.printedHealth),attackColor=battle&&Number.isFinite(attackBase)&&Number(card.attack)!==attackBase?(Number(card.attack)>attackBase?"#75e59a":"#ff7777"):"#fff1c9",healthColor=battle&&Number.isFinite(healthBase)&&Number(card.health)!==healthBase?(Number(card.health)>healthBase?"#75e59a":"#ff7777"):"#ffd5dc";
   if(card.attack!=null)text(String(card.attack),x+w*.207,y+h*.813,statSize,attackColor,"center",800);
   if(card.health!=null)text(String(card.health),x+w*.798,y+h*.813,statSize,healthColor,"center",800);
@@ -360,7 +360,7 @@ function renderDeckEditor(){
   text("法力曲线",m+7,curveY+11,8,"#aaaed0");
   const barSpace=Math.floor((leftW-m-34)/curve.keys.length),barW=Math.max(5,barSpace-3);
   curve.keys.forEach((key,index)=>{const value=curve.values[index],bx=m+26+index*barSpace,h=value?Math.max(3,Math.round((curveH-32)*value/maxCurve)):2,by=curveY+curveH-12-h;box(bx,by,barW,h,2,value?"#8e7bc7":"#2a3252","#6b5aa0");text(String(key),bx+barW/2,curveY+curveH-3,7,"#8b94b8","center");if(value)text(String(value),bx+barW/2,Math.max(curveY+16,by-4),7,"#e7e2ff","center",700);});
-  const startY=curveY+curveH+6,cw=Math.floor((leftW-m-10)/2),ch=Math.floor(cw*1.42),gridGap=6,rightRowH=62;
+  const startY=curveY+curveH+6,cw=Math.floor((leftW-m-10)/2),ch=Math.floor(cw*CARD_RATIO),gridGap=6,rightRowH=62;
   const cards=deckSortedCards(),deckItems=draft.cards.map(item=>({...item,card:state.cards.find(card=>card.id===item.cardId)})).filter(item=>item.card).sort((a,b)=>Number(a.card.cost)-Number(b.card.cost));
   const view=Math.max(40,H-startY-safeBottom),gridContent=Math.ceil(cards.length/2)*(ch+gridGap),deckContent=deckItems.length*(rightRowH+6);
   state.deckMax={left:Math.max(0,gridContent-view+14),right:Math.max(0,deckContent-view+14)};
@@ -395,6 +395,7 @@ function renderBattleSetup(){battleBg();const top=serviceHeader("PVE 对战","�
 function renderBattleHistory(){battleBg();const top=serviceHeader("对战记录","最近 100 场 PVE 对局"),m=12,row=68,gap=7;state.maxScroll=Math.max(0,state.battleHistory.length*(row+gap)-(H-top-safeBottom));ctx.save();ctx.beginPath();ctx.rect(0,top,W,H-top-safeBottom);ctx.clip();state.battleHistory.forEach((item,i)=>{const y=top+i*(row+gap)-state.scrollY;if(y+row<top||y>H)return;const label=item.result==="win"?"胜利":item.result==="loss"?"失败":item.result==="draw"?"平局":"已过期";box(m,y,W-m*2,row,9,"#111a39dd",item.result==="win"?"#79c39f":item.result==="loss"?"#a96373":"#777ea4");text(`${label} · ${difficultyName(item.difficulty)}`,m+12,y+19,13,"#fff","left",700);text(`${item.deckName} · ${item.fullTurns} 回合`,m+12,y+43,9,"#d0d5eb");text(new Date(item.finishedAt).toLocaleString(),W-m-12,y+20,8,"#aeb7d8","right");});ctx.restore();if(!state.battleHistory.length)text("暂无对战记录",W/2,top+70,12,"#d0d5eb","center");scrollBar(top);}
 
 function cardTypeLabel(card){return card.cardTypeLabel||card.displayType||"";}
+const CARD_RATIO=768/512;
 function drawCardTemplate(card,x,y,w,h,options){
   const p=COLORS[card.rarity]||COLORS.common, battle=Boolean(options&&options.battle), compact=!battle&&(Boolean(options&&options.compact)||h<112||w<82), selected=Boolean(options&&options.selected), enabled=options&&options.enabled!==false;
   const border=selected?"#f5dc78":card.shiny?"#ffe18a":p.border, radius=Math.max(5,Math.min(15,w*.08)),frameAvailable=Boolean(homeArt.images[cardFrameKey(card)]||homeArt.images.cardFrameEpic),transparentOuter=Boolean(options&&options.transparentOuter&&frameAvailable&&!compact);
@@ -421,7 +422,7 @@ function drawCardTemplate(card,x,y,w,h,options){
   if(card.shiny)text("闪",x+w*.85,y+h*.09,Math.max(7,w*.055),"#fff3b0","center",800);
   const ribbonY=y+h*.56,ribbonH=h*.18;box(x+w*.07,ribbonY,w*.86,ribbonH,Math.min(10,w*.05),CARD_FRAME.ribbon+"ee",p.accent+"99");
   text(fit(card.name,w*.75,Math.max(9,w*.085)),x+w/2,ribbonY+ribbonH*.28,Math.max(9,w*.085),CARD_FRAME.ribbonInk,"center",800);
-  const effect=card.rulesText||card.description||"";if(effect&&h>145)wrapText(effect,x+w*.15,ribbonY+ribbonH*.62,w*.7,Math.max(10,h*.038),Math.max(7,w*.052),CARD_FRAME.ribbonInk,2,false);
+  const effect=card.rulesText||card.description||"";if(effect&&h>130)wrapText(effect,x+w*.15,ribbonY+ribbonH*.62,w*.7,Math.max(8,h*.045),Math.max(7,w*.062),CARD_FRAME.ribbonInk,2,false);
   const attackY=y+h*.91,type=cardTypeLabel(card);if(card.attack!=null){ctx.fillStyle="#3c303a";ctx.beginPath();ctx.arc(x+w*.17,attackY,Math.max(9,w*.085),0,Math.PI*2);ctx.fill();text(String(card.attack),x+w*.17,attackY,Math.max(10,w*.08),"#fff4c9","center",800);}if(type)text(type,x+w/2,attackY,Math.max(7,w*.055),p.accent,"center",700);if(card.health!=null){ctx.fillStyle="#3c303a";ctx.beginPath();ctx.arc(x+w*.83,attackY,Math.max(9,w*.085),0,Math.PI*2);ctx.fill();text(String(card.health),x+w*.83,attackY,Math.max(10,w*.08),"#ffd2d2","center",800);}
   ctx.restore();
 }
@@ -464,7 +465,7 @@ function renderBattleReturn(){const item=state.battleReturn;if(!item)return;cons
 function renderBattle(){
   const game=state.battle;if(!game){renderBattleSetup();return;}if(game.phase==="mulligan"&&game.status==="active"){renderMulligan(game);return;}
   battleBg();
-  const top=homeContentTop(),m=8,remaining=Math.max(0,Math.ceil((game.deadlineAt-Date.now())/1000)),enemyY=top+82,bottomButtonTop=H-safeBottom-37,handH=Math.max(64,Math.min(96,Math.round(H*.105))),handBottom=bottomButtonTop-44,handY=handBottom-handH,heroY=handY-56,boardSpan=Math.max(150,(heroY-20)-enemyY),boardCh=Math.max(54,Math.min(126,Math.floor((boardSpan-76)/2))),boardCw=Math.round(boardCh/1.38),ownY=heroY-20-boardCh,dragAttack=dragAttackContext(game),heroRect={type:"hero",id:"ai",side:"ai",x:W/2-58,y:top+18,w:116,h:45,legal:dragAttack.hero};
+  const top=homeContentTop(),m=8,remaining=Math.max(0,Math.ceil((game.deadlineAt-Date.now())/1000)),enemyY=top+82,bottomButtonTop=H-safeBottom-37,handH=Math.max(64,Math.min(96,Math.round(H*.105))),handBottom=bottomButtonTop-44,handY=handBottom-handH,heroY=handY-56,boardSpan=Math.max(150,(heroY-20)-enemyY),boardCh=Math.max(54,Math.min(126,Math.floor((boardSpan-76)/2))),boardCw=Math.round(boardCh/CARD_RATIO),ownY=heroY-20-boardCh,dragAttack=dragAttackContext(game),heroRect={type:"hero",id:"ai",side:"ai",x:W/2-58,y:top+18,w:116,h:45,legal:dragAttack.hero};
   text("‹ 暂离",m,top+8,10,"#ddd6ff","left",700);hit("exitBattle",0,top-8,58,34);text(`${difficultyName(game.difficulty)} · ${game.turn==="player"?"你的回合":"对手思考中…"}`,W/2,top+8,10,"#d7dcf0","center");button("battleSpeed",W-82,top-7,38,28,`${state.battleSpeed}×`,"",true);text(`${remaining}s`,W-m,top+8,11,remaining<=10?"#ff8d8d":"#f3efff","right",700);
   box(heroRect.x+3,top+20,110,40,19,"#182044dd",dragAttack.hero?"#f5dc78":"#7480ad");text(`星界守卫  ${game.ai.health}/30`,W/2,top+40,13,"#fff","center",700);text(`手牌 ${game.ai.handCount} · 牌库 ${game.ai.deckCount} · 能量 ${game.ai.mana}/${game.ai.maxMana}`,W/2,top+67,9,"#d1d6e9","center");
   const enemyLayout=boardLayout(game.ai.board,enemyY,false,game,boardCw,boardCh);text("— 星界战场 —",W/2,enemyY+enemyLayout.ch+21,9,"#c8cde2","center");const ownLayout=boardLayout(game.player.board,ownY,true,game,boardCw,boardCh);
@@ -477,7 +478,7 @@ function renderBattle(){
 }
 
 function miniCard(item,x,y,w,h,options){drawCardTemplate(item.card||item,x,y,w,h,{enabled:true,...options});}
-function resultsLayout(count){const m=14,py=safeTop+10,ph=H-py-safeBottom-10,gap=6,cols=count===1?1:3,rows=Math.ceil(count/cols),maxW=W-m*2-24,cw=count===1?170:Math.min((maxW-gap*(cols-1))/cols,112),ch=count===1?250:Math.min(cw*1.48,(ph-140-gap*(rows-1))/rows),gw=cols*cw+gap*(cols-1),gx=(W-gw)/2,gy=py+58;return{m,py,ph,gap,cols,rows,cw,ch,gx,gy,bottom:gy+rows*ch+(rows-1)*gap};}
+function resultsLayout(count){const m=14,py=safeTop+10,ph=H-py-safeBottom-10,gap=6,cols=count===1?1:3,rows=Math.ceil(count/cols),maxW=W-m*2-24,cw=count===1?170:Math.min((maxW-gap*(cols-1))/cols,112),ch=count===1?Math.min(250,Math.round(170*CARD_RATIO)):Math.min(Math.round(cw*CARD_RATIO),(ph-140-gap*(rows-1))/rows),gw=cols*cw+gap*(cols-1),gx=(W-gw)/2,gy=py+58;return{m,py,ph,gap,cols,rows,cw,ch,gx,gy,bottom:gy+rows*ch+(rows-1)*gap};}
 function renderResults(){traceOverlay("results");ctx.fillStyle="#050712ee";ctx.fillRect(0,0,W,H);const{m,py,ph,gap,cols,cw,ch,gx,gy}=resultsLayout(state.results.length);box(m,py,W-m*2,ph,16,gradient(py,ph,"#242850","#0d1329"),"#6d5aac");text(state.resultLabel,m+18,py+30,19,"#f1e7ff","left",700);text("×",W-m-22,py+30,28,"#aeb5da","center");hit("closeResults",W-m-48,py,48,50);state.results.forEach((item,i)=>{const x=gx+(i%cols)*(cw+gap),y=gy+Math.floor(i/cols)*(ch+gap);miniCard(item,x,y,cw,ch,{transparentOuter:true});if(item.shiny)text("闪",x+cw-8,y+9,8,"#ffe38a","center",800);if(item.pityTriggered||item.tenGuarantee)text(item.pityTriggered?"40保底":"十连保底",x+cw/2,y+ch+9,8,"#f0cd78","center");});button("closeResults",m+16,py+ph-46,W-m*2-32,34,"收下卡牌","",true);}
 
 function resetCollectionState(){state.collectionSearch="";state.collectionFilters={sets:[],rarities:[],costs:[],versions:[]};state.collectionFilter="all";state.showCollectionFilters=false;state.scrollY=0;}
