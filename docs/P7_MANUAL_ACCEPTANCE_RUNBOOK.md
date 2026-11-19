@@ -14,7 +14,7 @@
    node tools/validate_release_readiness.js
    ```
 
-4. 开发测试阶段保留 `game.js` 中 `DEVELOPMENT_RESET_ENABLED = true`；正式上线前改为 `false`，重新运行发布审计。
+4. 开发测试阶段保留 `game.js` 中 `DEVELOPMENT_RESET_ENABLED = true`；正式上线前改为 `false`，然后运行 `node tools/validate_release_readiness.js --release`（开发档默认要求 true，发布档要求 false，两档不会互相放过）。
 
 ## 2. 真机必测流程
 

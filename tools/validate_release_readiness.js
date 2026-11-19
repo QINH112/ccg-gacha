@@ -23,7 +23,12 @@ const jsonDesign = relative => JSON.parse(fs.readFileSync(designFile(relative), 
 const project = json("project.config.json");
 if (project.compileType !== "game") failures.push("project.config.json compileType must be game");
 if (!project.gameRoot || !project.cloudfunctionRoot) failures.push("project.config.json gameRoot/cloudfunctionRoot missing");
-if (!/DEVELOPMENT_RESET_ENABLED\s*=\s*true/.test(read("game.js"))) failures.push("development reset switch is not explicitly true for development audit");
+// 两档审计：默认开发档（要求开关显式为 true，避免被误删）；--release 发布档（要求为 false，防止带重置按钮上线）
+const releaseMode = process.argv.includes("--release");
+const resetSwitch = read("game.js").match(/DEVELOPMENT_RESET_ENABLED\s*=\s*(true|false)/);
+if (!resetSwitch) failures.push("development reset switch missing from game.js");
+else if (releaseMode && resetSwitch[1] !== "false") failures.push("release audit: DEVELOPMENT_RESET_ENABLED must be false before shipping");
+else if (!releaseMode && resetSwitch[1] !== "true") failures.push("development reset switch is not explicitly true for development audit");
 if (!fs.existsSync(path.join(root, "docs", "VISUAL_DEVELOPMENT_PLAN.md"))) failures.push("visual development plan missing");
 if (!fs.existsSync(path.join(root, "docs", "VISUAL_ACCEPTANCE_CHECKLIST.md"))) failures.push("visual acceptance checklist missing");
 if (!fs.existsSync(path.join(root, "docs", "P7_MANUAL_ACCEPTANCE_RUNBOOK.md"))) failures.push("P7 manual acceptance runbook missing");
@@ -62,7 +67,7 @@ for (const tool of requiredTools) if (!fs.existsSync(path.join(root, tool))) fai
 
 notes.push("P7 remains conditional until a real device completes natural battle, touch feel, and 15-minute stability checks.");
 notes.push("Wechat DevTools CLI is verified working (login + service port 39310); simulator evidence still needs window-level capture because automator cannot read pure Canvas frames.");
-notes.push("Before production release, change DEVELOPMENT_RESET_ENABLED in game.js to false and rerun this audit with the release checklist.");
+if (!releaseMode) notes.push("Before production release: set DEVELOPMENT_RESET_ENABLED=false in game.js and run `node tools/validate_release_readiness.js --release`.");
 
 if (failures.length) {
   console.error(`release-readiness-failed failures=${failures.length}`);
@@ -71,6 +76,6 @@ if (failures.length) {
 } else {
   const manifest = jsonDesign("design/review/p7-evidence-manifest.json");
   const device = Array.isArray(manifest.deviceEvidence) ? manifest.deviceEvidence.length : 0;
-  console.log(`release-readiness-ok evidence=${manifest.evidence.length} device=${device} blockers=${notes.length} design=${designRoot}`);
+  console.log(`release-readiness-ok mode=${releaseMode ? "release" : "development"} evidence=${manifest.evidence.length} device=${device} blockers=${notes.length} design=${designRoot}`);
   notes.forEach(item => console.log(`NOTE ${item}`));
 }

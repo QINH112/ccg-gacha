@@ -111,6 +111,6 @@
 
 1. 把不通过的编号发我（例如「B3 仍存在」「A3 插入线偏左」），我按编号定位改；
 2. 全部通过后我执行 `node tools/write_p7_evidence.js` 刷新证据清单，再跑 `node tools/validate_release_readiness.js` 把 P7 的人工证据补齐；
-3. 上线前把 `DEVELOPMENT_RESET_ENABLED` 改为 `false` 并重跑发布审计。
+3. 上线前把 `DEVELOPMENT_RESET_ENABLED` 改为 `false`，并跑 `node tools/validate_release_readiness.js --release` 确认通过。
 
 > 相关约定：战斗内不得出现整屏遮罩见 `docs/UI_OVERLAY_RULES.md`；验收判定规则见 `docs/P7_MANUAL_ACCEPTANCE_RUNBOOK.md`。
