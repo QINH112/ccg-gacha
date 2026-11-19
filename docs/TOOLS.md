@@ -82,6 +82,7 @@
 - `tools/render_battle_visual_qa.py`
 - `tools/render_card_art_visual_qa.py`
 - `tools/render_card_template_visual_qa.py`
+- `tools/render_collection.js`
 - `tools/render_collection_card_art_qa.py`
 - `tools/render_deck_editor.js`
 - `tools/render_home_visual_qa.py`

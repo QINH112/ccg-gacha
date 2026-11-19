@@ -113,3 +113,13 @@
 | Q31 | 「我的牌组」列表页是否改封面 + 曲线 | 要 |
 | Q32 | 移除卡的提示 | 要在当前牌组标题下写明「点下面的数字减一张」 |
 | Q33 | 左右两栏的滚动 | 各自独立滚动，互不带动 |
+
+## 图鉴标题显示星尘（2026-11-20，Q34）
+
+用户原话：「在图鉴里，我看不到我已有星尘，这样不方便看」。
+
+| 编号 | 问题 | 用户决定 |
+| --- | --- | --- |
+| Q34 | 图鉴页要不要显示星尘余额 | 要，放在标题行「已收集 X / Y 种 · 星尘 N」，不额外占一行 |
+
+实现：`renderCollection()` 的 `header()` 副标题改为 `已收集 ${owned} / ${state.cards.length} 种 · 星尘 ${state.player.dust||0}`；新增 `tools/render_collection.js` 出样张 `design/review/collection-<宽>x<高>.png`；`tools/smoke_collection_navigation.js` 增加断言「图鉴标题必须含星尘数字」。

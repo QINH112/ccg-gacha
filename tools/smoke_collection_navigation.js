@@ -16,11 +16,12 @@
 const noop = () => {};
 const handlers = {};
 const gradient = { addColorStop: noop };
+const texts = [];
 const context = new Proxy({
   createLinearGradient: () => gradient,
   measureText: value => ({ width: String(value).length * 8 }),
   roundRect: noop,
-  fillText: noop,
+  fillText: value => texts.push(String(value)),
 }, {
   get(target, property) {
     if (property in target) return target[property];
@@ -139,12 +140,19 @@ async function settle() {
   state.screen = "home";
   game.render();
 
-  for (let round = 1; round <= 3; round += 1) {
+  function collectionSubtitle() {
+  const labels = texts.filter(value => value.includes("已收集"));
+  return labels[labels.length - 1] || "";
+}
+
+for (let round = 1; round <= 3; round += 1) {
     // 进入图鉴
     state.screen = "collection";
     state.scrollY = 0;
     game.render();
     if (state.screen !== "collection") throw new Error(`第 ${round} 轮进入图鉴失败`);
+    const subtitle = collectionSubtitle();
+    if (!/星尘\s*\d+/.test(subtitle)) throw new Error(`图鉴标题应显示星尘余额，实际「${subtitle}」`);
 
     const cardHits = state.cardHits.map(item => ({ ...item }));
     if (cardHits.length < 6) throw new Error(`第 ${round} 轮图鉴卡位数量异常：${cardHits.length}`);
