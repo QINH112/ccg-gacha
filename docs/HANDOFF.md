@@ -18,7 +18,7 @@
 ## 二、等你动手的两件事
 
 1. **重新预览 + 重传云函数**：客户端改了什么必须重编译才能上手机；`cloudfunctions/workshop`（合成上限改 9 张）需要重新上传。
-2. **是否首次提交**：`docs/`、`tools/`、`assets/`、`subpackages/`、`cloudfunctions/battleGame/`、`cloudfunctions/deckService/` 目前全部 untracked，没有任何版本历史。
+2. ~~是否首次提交~~ **已完成**：2026-11-19 首次完整提交 `aa26e5f`，220 个文件、233 个受控文件、`.git` 约 15MB；此后改动可回滚。
 
 Q1（分解不弹二次确认）、Q2（非闪合成上限 9 张）已于 2026-11-19 拍板并落地，见 `docs/DECISION_LOG.md`。
 
