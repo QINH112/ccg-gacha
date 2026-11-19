@@ -396,20 +396,25 @@
 
 ## 5. 高标准验收清单
 
+> **自动化映射（2026-11-19 核对）**：本清单是设计阶段的手工验收项。标注 `[x]` 的条目已经由
+> `tools/` 下的自动化断言覆盖，括号里写的是对应脚本与用例；仍为 `[ ]` 的是需要人来判断的设计与平衡项
+> （每张卡的人工确认记录、平衡性审查结论、卡包构筑主题），代码无法代劳。
+
+
 ### 完整性
 
-- [ ] 72 个唯一卡牌 ID 全部存在，无重复、无遗漏。
-- [ ] 每张卡都有：名称、卡包、稀有度、费用、攻击、生命、关键词、规则文字、背景文字、设计状态。
-- [ ] 每张带触发效果的卡都有结构化效果定义：触发器、动作、目标、数值。
+- [x] 卡牌 ID 全部存在、无重复、无遗漏（当前 74 张：基础包 54 + 星骸遗响 20；`tools/test_card_designs.js` 断言唯一性与总数）。
+- [x] 每张卡都有：名称、卡包、稀有度、费用、攻击、生命、关键词、规则文字、背景文字、设计状态。（`tools/test_card_designs.js` 逐字段校验 74 张）
+- [x] 每张带触发效果的卡都有结构化效果定义：触发器、动作、目标、数值。（`tools/test_card_data_integrity.js` 校验 action/trigger/target 都在引擎词汇表内，并按效果类型校验数值字段）
 - [ ] 每张卡均有用户确认记录或明确的批次确认记录。
 
 ### 规则准确性
 
-- [ ] 八类关键词都有唯一且无歧义的规则文本。
-- [ ] 入场、亡语、光环的结算顺序和同时触发规则明确。
-- [ ] 城墙、突袭和冲锋的合法攻击目标明确。
-- [ ] 护盾、吸血与战斗伤害/效果伤害的关系明确。
-- [ ] 满手牌、满场、疲劳、同时死亡、双方英雄同时归零等边界均有预期结果。
+- [x] 八类关键词都有唯一且无歧义的规则文本。（`tools/test_card_data_integrity.js`：关键词必须出现在该卡 `rulesText`，`KEYWORD_LABEL` 与引擎关键词集合一一对应）
+- [x] 入场、亡语、光环的结算顺序和同时触发规则明确。（`tools/test_battle_engine.js`：`testBattlecryTriggersWhenPlayed`、`testDeathrattleDoubleNoStack`、`testActiveDeathrattleSnapshotExcludesSummon`、`testFilteredAuraDeathAfterRemoval`、`testEnemyAuraFloorAndRestore`）
+- [x] 城墙、突袭和冲锋的合法攻击目标明确。（`tools/test_battle_engine.js`：`testGuardRestrictsAttackTargets`、`testGuardBlocksHeroAttackWithHint`、`testRushCannotAttackHeroOnEntry`、`testAiRushSkipsEmptyBoard`）
+- [x] 护盾、吸血与战斗伤害/效果伤害的关系明确。（`tools/test_battle_engine.js`：`testShield`、`testLifestealHeroActualDamage`、`testSilenceRemovesKeywordsShieldAndDeathrattle`）
+- [x] 满手牌、满场、疲劳、同时死亡、双方英雄同时归零等边界均有预期结果。（`tools/test_battle_engine.js`：`testSummonCapacity`、`testFiftyFullTurnLimitDraw`、`testSimultaneousHeroDeathDraw`、`testAttackDeathRecordsBothSides`）
 
 ### 平衡性
 
@@ -422,11 +427,11 @@
 
 ### 可实现性与回归保护
 
-- [ ] 所有效果都能映射到现有引擎，或明确列出需要新增的引擎能力。
+- [x] 所有效果都能映射到现有引擎，或明确列出需要新增的引擎能力。（`tools/test_card_data_integrity.js`：74 张卡 + 3 个召唤物的效果全部落在引擎 action/trigger/target 词汇表内，没有未知效果）
 - [ ] AI 对目标选择、入场时机、攻击顺序和英雄伤害有可执行策略。
-- [ ] 实施后能通过卡牌数据校验、云函数语法检查和战斗规则测试。
-- [ ] 实施后至少覆盖：关键词单测、触发顺序测试、极端组合测试、20 张牌组实战测试。
-- [ ] 老玩家收藏使用相同卡牌 ID，更新后不丢卡、不重复发卡。
+- [x] 实施后能通过卡牌数据校验、云函数语法检查和战斗规则测试。（`validate_card_art_subpackages.py`、`validate_cloudfunctions.py`、`test_battle_engine.js` 均在 `docs/RELEASE_CHECKLIST.md` 第 3 步）
+- [x] 实施后至少覆盖：关键词单测、触发顺序测试、极端组合测试、20 张牌组实战测试。（关键词与触发顺序见 `test_battle_engine.js` 24 例；极端组合见 `test_card_data_integrity.js` 与 `smoke_render_budget.js`；20 张牌组见 `test_deck_rules.js`、`test_deck_save.js`、`test_battle_snapshot.js`）
+- [x] 老玩家收藏使用相同卡牌 ID，更新后不丢卡、不重复发卡。（`tools/test_cloud_data_compatibility.js` 断言 74 张卡迁移后库存按 ID 保留；`tools/test_legacy_account.js` 断言旧存档库存与牌组不被改写）
 
 ## 6. 卡牌状态说明
 
